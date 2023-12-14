@@ -1,0 +1,145 @@
+package org.niklasunrau.pqcmessenger
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
+import org.niklasunrau.pqcmessenger.domain.util.Route
+import org.niklasunrau.pqcmessenger.presentation.auth.screens.LogInScreen
+import org.niklasunrau.pqcmessenger.presentation.auth.screens.ResetPasswordScreen
+import org.niklasunrau.pqcmessenger.presentation.auth.screens.SignUpScreen
+import org.niklasunrau.pqcmessenger.presentation.auth.screens.StartScreen
+import org.niklasunrau.pqcmessenger.presentation.auth.viewmodel.AuthViewModel
+import org.niklasunrau.pqcmessenger.presentation.main.screens.ContactScreen
+import org.niklasunrau.pqcmessenger.presentation.main.screens.HomeScreen
+import org.niklasunrau.pqcmessenger.presentation.main.screens.ProfileScreen
+import org.niklasunrau.pqcmessenger.presentation.main.screens.SettingsScreen
+import org.niklasunrau.pqcmessenger.presentation.main.viewmodel.MainViewModel
+import org.niklasunrau.pqcmessenger.theme.MessengerTheme
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalAnimationApi::class)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        installSplashScreen()
+        setContent {
+            MessengerTheme {
+                val navController = rememberNavController()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    fun navToMain() {
+                        navController.navigate(Route.Main.name) {
+                            popUpTo(Route.Auth.name) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                    NavHost(
+                        navController = navController,
+                        startDestination = Route.Auth.name,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        navigation(
+                            startDestination = Route.Start.name,
+                            route = Route.Auth.name
+                        ) {
+                            composable(Route.Start.name) {
+                                StartScreen(
+                                    onNavigateToLogIn = { navController.navigate(Route.LogIn.name) },
+                                    onNavigateToSignUp = { navController.navigate(Route.SignUp.name) },
+                                    onNavigateToMain = { navToMain() },
+                                )
+                            }
+                            composable(Route.LogIn.name) {
+                                LogInScreen(
+                                    onNavigateToStart = { navController.navigate(Route.Start.name) },
+                                    onNavigateToResetPassword = { navController.navigate(Route.ResetPassword.name) },
+                                    onNavigateToSignUp = { navController.navigate(Route.SignUp.name) },
+                                    onNavigateToMain = { navToMain() },
+                                    viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
+
+                                )
+                            }
+                            composable(Route.SignUp.name) {
+                                SignUpScreen(
+                                    onNavigateToStart = { navController.navigate(Route.Start.name) },
+                                    onNavigateToLogIn = { navController.navigate(Route.LogIn.name) },
+                                    onNavigateToMain = { navToMain() },
+                                    viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
+                                )
+                            }
+                            composable(Route.ResetPassword.name) {
+                                ResetPasswordScreen()
+                            }
+                        }
+                        navigation(
+                            startDestination = Route.Chats.name,
+                            route = Route.Main.name
+                        ) {
+                            composable(Route.Chats.name) {
+                                HomeScreen(
+                                    onNavigateToRoute = { route -> navController.navigate(route.name) },
+                                    onNavigateToAuth = {
+                                        navController.navigate(Route.Auth.name) {
+                                            popUpTo(Route.Main.name) {
+                                                inclusive = true
+                                            }
+                                        }
+                                    },
+                                    viewModel = it.sharedViewModel<MainViewModel>(navController = navController)
+                                )
+                            }
+                            composable(Route.Profile.name) {
+                                ProfileScreen(
+                                    onNavigateToRoute = { route -> navController.navigate(route.name) },
+                                    viewModel = it.sharedViewModel<MainViewModel>(navController = navController)
+                                )
+                            }
+                            composable(Route.Settings.name) {
+                                SettingsScreen(
+                                    onNavigateToRoute = { route -> navController.navigate(route.name) },
+                                    viewModel = it.sharedViewModel<MainViewModel>(navController = navController)
+                                )
+
+                            }
+                            composable(Route.Contact.name) {
+                                ContactScreen(
+                                    onNavigateToRoute = { route -> navController.navigate(route.name) },
+                                    viewModel = it.sharedViewModel<MainViewModel>(navController = navController)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavController): T {
+    val navGraphRoute = destination.parent?.route ?: return hiltViewModel()
+    val parentEntry = remember(this) {
+        navController.getBackStackEntry(navGraphRoute)
+    }
+    return hiltViewModel(parentEntry)
+}

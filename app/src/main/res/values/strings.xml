@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">PQCMessenger</string>
+    <string name="hello">Hello</string>
+    <string name="welcome">Welcome to PQCMessenger</string>
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="email">Email Address</string>
+    <string name="password">Password</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="no_account">Don\'t have an account?</string>
+    <string name="create_account">Create Account</string>
+    <string name="already_account">Do you already have an account?</string>
+    <string name="username">Username</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="version">"Version: "</string>
+    <string name="profile">Profile</string>
+    <string name="settings">Settings</string>
+    <string name="contact">Contact</string>
+</resources>
