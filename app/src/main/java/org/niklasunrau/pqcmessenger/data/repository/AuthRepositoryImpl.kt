@@ -17,13 +17,16 @@ class AuthRepositoryImpl @Inject constructor(
     override val currentUserId: String
         get() = auth.currentUser?.uid.orEmpty()
 
+    override val isUserSignedIn: Boolean
+        get() = auth.currentUser != null
+
     override suspend fun login(email: String, password: String): Flow<Status<AuthResult>> {
         return flow {
             emit(Status.Loading())
             val result = auth.signInWithEmailAndPassword(email, password).await()
             emit(Status.Success(result))
         }.catch {
-            emit(Status.Error(it.message.toString()))
+            emit(Status.Error(it))
         }
     }
 
@@ -33,7 +36,7 @@ class AuthRepositoryImpl @Inject constructor(
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             emit(Status.Success(result))
         }.catch {
-            emit(Status.Error(it.message.toString()))
+            emit(Status.Error(it))
         }
     }
     override suspend fun signOut() {

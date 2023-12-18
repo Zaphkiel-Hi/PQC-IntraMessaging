@@ -8,11 +8,19 @@ class UserRepositoryTest : UserRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getUser(uid: String): User? {
+    override suspend fun getUserById(uid: String): User {
         TODO("Not yet implemented")
     }
 
-    override suspend fun updateUser(user: User) {
+    override suspend fun getUserByUsername(username: String): User? {
+        TODO("Not yet implemented")
+    }
+
+//    override suspend fun updateUser(user: User) {
+//        TODO("Not yet implemented")
+//    }
+
+    override suspend fun isUsernameInUse(username: String): Boolean {
         TODO("Not yet implemented")
     }
 }

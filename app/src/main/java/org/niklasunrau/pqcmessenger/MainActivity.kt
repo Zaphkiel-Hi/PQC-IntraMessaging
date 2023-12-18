@@ -3,7 +3,6 @@ package org.niklasunrau.pqcmessenger
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -32,30 +31,35 @@ import org.niklasunrau.pqcmessenger.presentation.main.screens.ProfileScreen
 import org.niklasunrau.pqcmessenger.presentation.main.screens.SettingsScreen
 import org.niklasunrau.pqcmessenger.presentation.main.viewmodel.MainViewModel
 import org.niklasunrau.pqcmessenger.theme.MessengerTheme
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalAnimationApi::class)
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         setContent {
             MessengerTheme {
                 val navController = rememberNavController()
+                val authViewModel = hiltViewModel<AuthViewModel>()
+
+                fun navToMain() {
+                    navController.navigate(Route.Main.name) {
+                        popUpTo(Route.Auth.name) {
+                            inclusive = true
+                        }
+                    }
+                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    fun navToMain() {
-                        navController.navigate(Route.Main.name) {
-                            popUpTo(Route.Auth.name) {
-                                inclusive = true
-                            }
-                        }
-                    }
                     NavHost(
                         navController = navController,
-                        startDestination = Route.Auth.name,
-                        modifier = Modifier.fillMaxSize()
+                        startDestination = if(authViewModel.isUserSignedIn()) Route.Main.name else Route.Auth.name,
+                        modifier = Modifier.fillMaxSize(),
+
                     ) {
                         navigation(
                             startDestination = Route.Start.name,
@@ -65,7 +69,6 @@ class MainActivity : ComponentActivity() {
                                 StartScreen(
                                     onNavigateToLogIn = { navController.navigate(Route.LogIn.name) },
                                     onNavigateToSignUp = { navController.navigate(Route.SignUp.name) },
-                                    onNavigateToMain = { navToMain() },
                                 )
                             }
                             composable(Route.LogIn.name) {

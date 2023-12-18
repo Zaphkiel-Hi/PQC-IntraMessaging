@@ -1,11 +1,7 @@
 package org.niklasunrau.pqcmessenger.presentation.auth.screens
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,38 +49,25 @@ fun LogInScreen(
     Column(
         modifier = Modifier.padding(MediumPadding),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(fraction = 0.3f)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_icon),
+
+        IconButton(onClick = {
+            onNavigateToStart()
+        }) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
                 contentDescription = null,
-                Modifier
-                .align(Alignment.Center)
-                .fillMaxSize(fraction = 0.75f)
+                tint = Color.Gray,
+                modifier = Modifier.size(30.dp)
             )
-            IconButton(onClick = {
-                onNavigateToStart()
-            }) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = null,
-                    tint = Color.Gray,
-                    modifier = Modifier.size(30.dp)
-                )
-            }
-
         }
-
+        Spacer(modifier = Modifier.height(LargePadding))
         AutoSizeText(text = stringResource(id = R.string.login), style = MaterialTheme.typography.displayMedium)
         AutoSizeText(text = "Welcome to the Post-Quantum Messenger", style = MaterialTheme.typography.bodyLarge)
         Spacer(modifier = Modifier.height(MediumPadding))
         LogInTextField(label = stringResource(id = R.string.email),
             icon = Icons.Outlined.Email,
             value = uiState.email,
-            errorStatus = uiState.emailError,
+            errorText = uiState.emailError.asString(),
             onValueChanged = {
                 viewModel.onEmailChange(it)
             }
@@ -96,7 +78,7 @@ fun LogInScreen(
             value = uiState.password,
             type = KeyboardType.Password,
             isLast = true,
-            errorStatus = uiState.passwordError,
+            errorText = uiState.passwordError.asString(),
             onValueChanged = {
                 viewModel.onPasswordChange(it)
             }
@@ -110,6 +92,7 @@ fun LogInScreen(
         Spacer(modifier = Modifier.height(LargePadding))
         CustomFilledButton(
             text = stringResource(id = R.string.login),
+            modifier = Modifier.fillMaxWidth(),
             onClicked = {
                 viewModel.login(onNavigateToMain)
             }
@@ -131,9 +114,9 @@ fun LogInScreen(
 @Composable
 private fun Preview() {
     LogInScreen(
-        onNavigateToStart = { /*TODO*/ },
-        onNavigateToResetPassword = { /*TODO*/ },
-        onNavigateToSignUp = { /*TODO*/ },
-        onNavigateToMain = { /*TODO*/ },
+        onNavigateToStart = { },
+        onNavigateToResetPassword = { },
+        onNavigateToSignUp = { },
+        onNavigateToMain = { },
         AuthViewModel(AuthRepositoryTest(), UserRepositoryTest()))
 }

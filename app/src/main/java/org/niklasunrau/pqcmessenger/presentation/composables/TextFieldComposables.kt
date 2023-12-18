@@ -1,7 +1,6 @@
 package org.niklasunrau.pqcmessenger.presentation.composables
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -9,6 +8,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -22,7 +22,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import org.niklasunrau.pqcmessenger.presentation.util.Dimens
 import org.niklasunrau.pqcmessenger.theme.AccentColor
 
 
@@ -33,7 +32,7 @@ fun LogInTextField(
     value: String = "",
     type: KeyboardType = KeyboardType.Text,
     isLast: Boolean = false,
-    errorStatus: Boolean = false,
+    errorText: String = "",
     onValueChanged: (String) -> Unit
 ) {
     val text = remember {
@@ -52,11 +51,20 @@ fun LogInTextField(
             focusedLabelColor = AccentColor,
         ),
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = Dimens.SmallPadding),
+            .fillMaxWidth(),
         maxLines = 1,
         singleLine = true,
-        isError = errorStatus,
+        isError = errorText.isNotEmpty(),
+        supportingText = {
+            if (errorText.isNotEmpty()) {
+                Text(
+                    text = errorText,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+
         keyboardOptions = KeyboardOptions(
             keyboardType = type, imeAction = if (!isLast) ImeAction.Next else ImeAction.Done
         ),

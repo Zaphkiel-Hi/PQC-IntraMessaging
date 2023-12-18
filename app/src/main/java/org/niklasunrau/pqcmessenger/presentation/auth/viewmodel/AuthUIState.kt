@@ -1,5 +1,7 @@
 package org.niklasunrau.pqcmessenger.presentation.auth.viewmodel
 
+import org.niklasunrau.pqcmessenger.presentation.util.UiText
+
 data class AuthUIState (
     var isLoading: Boolean = false,
 
@@ -8,8 +10,8 @@ data class AuthUIState (
     var password: String = "",
     var confirmPassword: String = "",
 
-    var usernameError: Boolean = false,
-    var emailError: Boolean = false,
-    var passwordError: Boolean = false,
-    var confirmPasswordError: Boolean = false
+    var usernameError: UiText = UiText.DynamicString(""),
+    var emailError: UiText = UiText.DynamicString(""),
+    var passwordError: UiText = UiText.DynamicString(""),
+    var confirmPasswordError: UiText = UiText.DynamicString("")
 )

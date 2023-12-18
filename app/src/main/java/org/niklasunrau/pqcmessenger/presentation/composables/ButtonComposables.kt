@@ -24,7 +24,6 @@ fun CustomFilledButton(
             onClicked()
         },
         modifier = modifier
-            .fillMaxWidth()
             .heightIn(48.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = colorResource(id = R.color.accent), contentColor = Color.White

@@ -3,6 +3,7 @@ package org.niklasunrau.pqcmessenger.presentation.composables
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -55,6 +56,7 @@ fun CustomNavigationDrawer(
     currentRoute: Route,
     updateRoute: (Route) -> Unit,
     onNavigateToRoute: (Route) -> Unit,
+    actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
@@ -139,7 +141,8 @@ fun CustomNavigationDrawer(
                                 contentDescription = null
                             )
                         }
-                    }
+                    },
+                    actions = actions
                 )
             },
             floatingActionButton = floatingActionButton,

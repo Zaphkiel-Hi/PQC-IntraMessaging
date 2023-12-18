@@ -30,10 +30,8 @@ import org.niklasunrau.pqcmessenger.presentation.util.Dimens.SmallPadding
 fun StartScreen(
     onNavigateToLogIn: () -> Unit,
     onNavigateToSignUp: () -> Unit,
-    onNavigateToMain: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    viewModel.checkLoggedIn(onNavigateToMain)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -63,7 +61,9 @@ fun StartScreen(
         CustomFilledButton(
             text = stringResource(id = R.string.login),
             onClicked = onNavigateToLogIn,
-            modifier = Modifier.padding(horizontal = SmallPadding)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = SmallPadding)
         )
 
         Spacer(modifier = Modifier.height(MediumPadding))
