@@ -1,6 +1,8 @@
 package org.niklasunrau.pqcmessenger.presentation.main.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -16,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Message
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,20 +36,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.niklasunrau.pqcmessenger.R
-import org.niklasunrau.pqcmessenger.data.test.AuthRepositoryTest
-import org.niklasunrau.pqcmessenger.data.test.ChatRepositoryTest
-import org.niklasunrau.pqcmessenger.data.test.UserRepositoryTest
-import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.util.ChatType
 import org.niklasunrau.pqcmessenger.domain.util.Route
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomFilledButton
@@ -56,9 +56,10 @@ import org.niklasunrau.pqcmessenger.theme.AccentColor
 import org.niklasunrau.pqcmessenger.theme.PrimaryColor
 
 @Composable
-fun HomeScreen(
+fun ChatsScreen(
     onNavigateToRoute: (Route) -> Unit,
     onNavigateToAuth: () -> Unit,
+    onNavigateToSingleChat: (String) -> Unit,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -174,34 +175,36 @@ fun HomeScreen(
                             .fillMaxWidth()
                             .height(75.dp)
                             .clickable {
-
+                                onNavigateToSingleChat(chat.id)
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (chat.type == ChatType.SINGLE) {
-                            val user = viewModel.getUser(chat).collectAsState(initial = User()).value
-                            AsyncImage(user.image, contentDescription = null)
-                            Column {
-                                Text(user.username)
-                                Text(chat.recentMessage)
+                        AsyncImage(model = chat.icon, contentDescription = null, modifier = Modifier.padding(
+                            SmallPadding).size(50.dp).clip(
+                            CircleShape).background(Color.White))
+                        if(chat.type == ChatType.SINGLE){
+                            val otherUserId = viewModel.getOtherUserId(chat)
+                            val otherUser = uiState.idsToUser[otherUserId]!!
+                            Column(
+                                modifier = Modifier.padding(start = SmallPadding),
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = otherUser.username,
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.titleLarge,
+                                )
+                                Text(
+                                    text = chat.recentMessage,
+                                    color = Color.White
+                                )
                             }
-                        } else {
-                            //TODO(add when groups exist)
                         }
-
                     }
+                    Divider()
                 }
             }
         }
 
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun Preview() {
-    HomeScreen(
-        { }, { },
-        MainViewModel(AuthRepositoryTest(), UserRepositoryTest(), ChatRepositoryTest())
-    )
 }

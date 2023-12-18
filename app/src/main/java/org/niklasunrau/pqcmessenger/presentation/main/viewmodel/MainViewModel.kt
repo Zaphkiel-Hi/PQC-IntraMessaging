@@ -23,6 +23,7 @@ import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.ChatRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
+import org.niklasunrau.pqcmessenger.domain.util.ChatType
 import org.niklasunrau.pqcmessenger.domain.util.Route
 import org.niklasunrau.pqcmessenger.presentation.util.NavigationItem
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
@@ -41,8 +42,27 @@ class MainViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val chats = chatRepository.getUserChats(authRepository.currentUserId)
+            for (chat in chats)
+                if (chat.type == ChatType.SINGLE)
+                    saveOtherUser(chat)
+
             val user = userRepository.getUserById(authRepository.currentUserId)
             _uiState.update { it.copy(chats = chats, currentUser = user!!) }
+        }
+    }
+
+    fun getOtherUserId(chat: Chat) =
+         if (chat.users[0] != authRepository.currentUserId) chat.users[0] else chat.users[1]
+
+    private suspend fun saveOtherUser(chat: Chat) {
+        val otherUserId = getOtherUserId(chat)
+        val otherUser = userRepository.getUserById(otherUserId)!!
+        saveUserWithId(otherUser)
+    }
+
+    private fun saveUserWithId(user: User) {
+        _uiState.update {
+            it.copy(idsToUser = _uiState.value.idsToUser + Pair(user.id, user))
         }
     }
 
@@ -70,15 +90,6 @@ class MainViewModel @Inject constructor(
 
     }
 
-    fun getUser(chat: Chat): Flow<User> {
-        val users = chat.users
-        val otherUserId = if (users[0] != authRepository.currentUserId) users[0] else users[1]
-        return flow {
-            val user = userRepository.getUserById(otherUserId)!!
-            emit(user)
-        }
-    }
-
 
     fun singOut(
         onNavigateToStart: () -> Unit
@@ -88,6 +99,7 @@ class MainViewModel @Inject constructor(
         }
         onNavigateToStart()
     }
+
 
     fun startNewSingleChat(newChatUsername: String): Flow<Boolean> {
         return flow {
@@ -111,9 +123,11 @@ class MainViewModel @Inject constructor(
             if (user == null) {
                 _uiState.update { it.copy(newChatError = UiText.StringResource(R.string.user_not_found)) }
             } else {
-                val newChat = Chat(listOf(authRepository.currentUserId, user.id))
+                saveUserWithId(user)
+                var newChat = Chat(listOf(authRepository.currentUserId, user.id))
+                val newId = chatRepository.startNewChat(newChat)
+                newChat = newChat.copy(id = newId)
                 _uiState.update { it.copy(chats = _uiState.value.chats + newChat) }
-                chatRepository.startNewChat(newChat)
                 emit(true)
             }
         }

@@ -4,8 +4,11 @@ import org.niklasunrau.pqcmessenger.domain.util.ChatType
 
 data class Chat(
     val users: List<String>,
-    val name: String? = null,
-    val icon: String? = null,
+    val id: String = "",
+    val name: String = "",
+    val icon: String = "",
     val type: ChatType = ChatType.SINGLE,
     val recentMessage: String = "",
-)
+){
+    constructor() : this(listOf())
+}

@@ -10,6 +10,7 @@ data class MainUIState(
     val currentUser: User = User(),
 
     val chats: List<Chat> = listOf(),
+    val idsToUser: Map<String, User> = mapOf(),
 
     val newChatUsername: String = "",
     val newChatError: UiText = UiText.DynamicString(""),

@@ -12,5 +12,6 @@ enum class Route {
     Chats,
     Profile,
     Settings,
-    Contact
+    Contact,
+    SingleChat,
 }

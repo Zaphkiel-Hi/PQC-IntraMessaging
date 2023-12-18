@@ -9,7 +9,7 @@ class ChatRepositoryTest : ChatRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun startNewChat(chat: Chat) {
+    override suspend fun startNewChat(chat: Chat): String {
         TODO("Not yet implemented")
     }
 }
