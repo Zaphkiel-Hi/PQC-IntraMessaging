@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavOptionsBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
@@ -139,7 +140,11 @@ class MainActivity : ComponentActivity() {
                             }
                             composable(
                                 Route.SingleChat.name + "/{chatId}",
-                                arguments = listOf(navArgument("chatId") { defaultValue = "" })
+                                arguments = listOf(navArgument("chatId") {
+                                    type = NavType.StringType
+                                    defaultValue = ""
+                                    nullable = false
+                                })
                             ) { navBackStackEntry ->
                                 val chatId = navBackStackEntry.arguments?.getString("chatId")
                                 chatId?.let {
