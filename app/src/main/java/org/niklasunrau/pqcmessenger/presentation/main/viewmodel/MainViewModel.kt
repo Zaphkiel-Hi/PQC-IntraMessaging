@@ -46,13 +46,12 @@ class MainViewModel @Inject constructor(
                 if (chat.type == ChatType.SINGLE)
                     saveOtherUser(chat)
 
-            val user = userRepository.getUserById(authRepository.currentUserId)
-            _uiState.update { it.copy(chats = chats, currentUser = user!!) }
+            _uiState.update { it.copy(chats = chats) }
         }
     }
 
     fun getOtherUserId(chat: Chat) =
-         if (chat.users[0] != authRepository.currentUserId) chat.users[0] else chat.users[1]
+        if (chat.users[0] != authRepository.currentUserId) chat.users[0] else chat.users[1]
 
     private suspend fun saveOtherUser(chat: Chat) {
         val otherUserId = getOtherUserId(chat)
@@ -91,13 +90,8 @@ class MainViewModel @Inject constructor(
     }
 
 
-    fun singOut(
-        onNavigateToStart: () -> Unit
-    ) {
-        viewModelScope.launch {
-            authRepository.signOut()
-        }
-        onNavigateToStart()
+    fun singOut() {
+        authRepository.signOut()
     }
 
 

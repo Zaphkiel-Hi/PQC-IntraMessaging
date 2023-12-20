@@ -39,12 +39,12 @@ class AuthRepositoryImpl @Inject constructor(
             emit(Status.Error(it))
         }
     }
-    override suspend fun signOut() {
+    override fun signOut() {
          auth.signOut()
     }
 
-    override suspend fun sendRecoveryEmail(email: String) {
-        auth.sendPasswordResetEmail(email).await()
+    override fun sendRecoveryEmail(email: String) {
+        auth.sendPasswordResetEmail(email)
     }
 
 }

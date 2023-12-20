@@ -56,22 +56,35 @@ class AuthViewModel @Inject constructor(
     ) {
         val email = uiState.value.email
         val password = uiState.value.password
+        _uiState.update { it.copy(isLoading = true) }
+
+        if (!isTextFieldsValid("login")) {
+            _uiState.update { it.copy(isLoading = false) }
+            return
+        }
 
         viewModelScope.launch {
             authRepository.login(email, password).collectLatest { result ->
                 when (result) {
                     is Status.Loading -> {
-                        _uiState.update { it.copy(isLoading = true) }
+                    }
+
+                    is Status.Error -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        when (result.error) {
+                            is FirebaseAuthInvalidCredentialsException ->
+                                _uiState.update { currentState ->
+                                    currentState.copy(
+                                        usernameError = UiText.StringResource(R.string.invalid_credentials),
+                                        passwordError = UiText.StringResource(R.string.invalid_credentials)
+                                    )
+                                }
+                        }
                     }
 
                     is Status.Success -> {
                         _uiState.update { it.copy(isLoading = false) }
                         onNavigateToHome()
-                    }
-
-                    is Status.Error -> {
-                        _uiState.update { it.copy(isLoading = false) }
-                        // TODO
                     }
                 }
             }

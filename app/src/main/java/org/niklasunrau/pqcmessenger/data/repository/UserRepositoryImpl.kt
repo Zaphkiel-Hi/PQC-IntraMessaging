@@ -30,7 +30,6 @@ class UserRepositoryImpl @Inject constructor(
         firestore.collection(USER_COLLECTION).add(user)
     }
 
-
     override suspend fun isUsernameInUse(username: String): Boolean {
         Log.d("API", "isUsernameInUse Call")
         return !firestore.collection(USER_COLLECTION).whereEqualTo(USERNAME_FIELD, username).get().await().isEmpty
@@ -38,6 +37,7 @@ class UserRepositoryImpl @Inject constructor(
 
     companion object {
         private const val USERNAME_FIELD = "username"
+        private const val CHATS_FIELD = "chats"
         private const val USER_COLLECTION = "users"
     }
 }

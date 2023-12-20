@@ -76,7 +76,8 @@ fun ChatsScreen(
         onNavigateToRoute = onNavigateToRoute,
         actions = {
             IconButton(onClick = {
-                viewModel.singOut(onNavigateToAuth)
+                viewModel.singOut()
+                onNavigateToAuth()
             }) {
                 Icon(
                     imageVector = Icons.Filled.Logout,
@@ -179,25 +180,35 @@ fun ChatsScreen(
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        AsyncImage(model = chat.icon, contentDescription = null, modifier = Modifier.padding(
-                            SmallPadding).size(50.dp).clip(
-                            CircleShape).background(Color.White))
-                        if(chat.type == ChatType.SINGLE){
+                        AsyncImage(
+                            model = chat.icon, contentDescription = null, modifier = Modifier
+                                .padding(
+                                    SmallPadding
+                                )
+                                .size(50.dp)
+                                .clip(
+                                    CircleShape
+                                )
+                                .background(Color.White)
+                        )
+                        if (chat.type == ChatType.SINGLE) {
                             val otherUserId = viewModel.getOtherUserId(chat)
-                            val otherUser = uiState.idsToUser[otherUserId]!!
-                            Column(
-                                modifier = Modifier.padding(start = SmallPadding),
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = otherUser.username,
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.titleLarge,
-                                )
-                                Text(
-                                    text = chat.recentMessage,
-                                    color = Color.White
-                                )
+                            val otherUser = uiState.idsToUser[otherUserId]
+                            otherUser?.let {
+                                Column(
+                                    modifier = Modifier.padding(start = SmallPadding),
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = otherUser.username,
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.titleLarge,
+                                    )
+                                    Text(
+                                        text = chat.recentMessage,
+                                        color = Color.White
+                                    )
+                                }
                             }
                         }
                     }

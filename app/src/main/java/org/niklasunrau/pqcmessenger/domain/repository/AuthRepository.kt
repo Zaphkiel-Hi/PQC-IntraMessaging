@@ -10,6 +10,6 @@ interface AuthRepository {
     suspend fun login(email: String, password: String): Flow<Status<AuthResult>>
     suspend fun signup(email: String, password: String): Flow<Status<AuthResult>>
 
-    suspend fun signOut()
-    suspend fun sendRecoveryEmail(email: String)
+    fun signOut()
+    fun sendRecoveryEmail(email: String)
 }

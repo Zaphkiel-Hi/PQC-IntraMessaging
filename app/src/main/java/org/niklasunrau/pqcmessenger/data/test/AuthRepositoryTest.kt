@@ -21,11 +21,11 @@ class AuthRepositoryTest : AuthRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun signOut() {
+    override fun signOut() {
         TODO("Not yet implemented")
     }
 
-    override suspend fun sendRecoveryEmail(email: String) {
+    override fun sendRecoveryEmail(email: String) {
         TODO("Not yet implemented")
     }
 

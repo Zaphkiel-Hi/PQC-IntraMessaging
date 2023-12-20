@@ -56,7 +56,7 @@ fun CustomNavigationDrawer(
     currentRoute: Route,
     updateRoute: (Route) -> Unit,
     onNavigateToRoute: (Route) -> Unit,
-    actions: @Composable RowScope.() -> Unit = {},
+    actions: @Composable (RowScope.() -> Unit) = {},
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
@@ -100,8 +100,8 @@ fun CustomNavigationDrawer(
                             onClick = {
                                 if (currentRoute != item.route) {
                                     scope.launch { drawerState.close() }
-                                    onNavigateToRoute(item.route)
                                     updateRoute(item.route)
+                                    onNavigateToRoute(item.route)
                                 }
                             }
                         )

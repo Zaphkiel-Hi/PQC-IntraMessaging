@@ -14,13 +14,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import androidx.navigation.NavOptionsBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import org.niklasunrau.pqcmessenger.domain.util.Route
 import org.niklasunrau.pqcmessenger.presentation.auth.screens.LogInScreen
@@ -48,15 +45,11 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val authViewModel = hiltViewModel<AuthViewModel>()
 
-                fun NavOptionsBuilder.popUpToTop(navController: NavController) {
-                    popUpTo(navController.currentBackStackEntry?.destination?.route ?: return) {
-                        inclusive = true
-                    }
-                }
-
                 fun navToMain() {
                     navController.navigate(Route.Main.name) {
-                        popUpTo(0)
+                        popUpTo(Route.Auth.name){
+                            inclusive = true
+                        }
                     }
                 }
                 Surface(
@@ -110,7 +103,9 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToRoute = { route -> navController.navigate(route.name) },
                                     onNavigateToAuth = {
                                         navController.navigate(Route.Auth.name) {
-                                            popUpTo(0)
+                                            popUpTo(Route.Main.name){
+                                                inclusive = true
+                                            }
                                         }
                                     },
                                     onNavigateToSingleChat = { chatId ->
@@ -139,17 +134,12 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable(
-                                Route.SingleChat.name + "/{chatId}",
-                                arguments = listOf(navArgument("chatId") {
-                                    type = NavType.StringType
-                                    defaultValue = ""
-                                    nullable = false
-                                })
+                                Route.SingleChat.name + "/{chatId}"
                             ) { navBackStackEntry ->
                                 val chatId = navBackStackEntry.arguments?.getString("chatId")
                                 chatId?.let {
                                     SingleChatScreen(chatId = it,
-                                        onNavigateToChats = { /*TODO*/ })
+                                        onNavigateToChats = { navController.navigate(Route.Chats.name) })
                                 }
                             }
                         }

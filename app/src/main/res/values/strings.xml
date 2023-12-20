@@ -28,4 +28,5 @@
     <string name="chat_already_exists">Chat already exists</string>
     <string name="cannot_add_yourself">Cannot add yourself</string>
     <string name="user_not_found">User not found</string>
+    <string name="invalid_credentials">Email or password invalid</string>
 </resources>
