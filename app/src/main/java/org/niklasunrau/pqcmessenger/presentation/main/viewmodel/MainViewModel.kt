@@ -45,8 +45,8 @@ class MainViewModel @Inject constructor(
             for (chat in chats)
                 if (chat.type == ChatType.SINGLE)
                     saveOtherUser(chat)
-
-            _uiState.update { it.copy(chats = chats) }
+            val currentUser = userRepository.getUserById(authRepository.currentUserId)!!
+            _uiState.update { it.copy(chats = chats, currentUser = currentUser) }
         }
     }
 
