@@ -52,6 +52,13 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+                fun navigateWithPopUp(route: Route){
+                    navController.navigate(Route.Main.name) {
+                        popUpTo(Route.Auth.name){
+                            inclusive = true
+                        }
+                    }
+                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

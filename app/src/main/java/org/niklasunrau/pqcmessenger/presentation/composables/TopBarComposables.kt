@@ -70,56 +70,57 @@ fun CustomNavigationDrawer(
                     drawerState.close()
                 }
             }
-        ModalDrawerSheet(
-            modifier = Modifier.requiredWidth(300.dp)
-        ) {
-            Row(
-                modifier = Modifier.height(200.dp), verticalAlignment = Alignment.CenterVertically
+            ModalDrawerSheet(
+                modifier = Modifier.requiredWidth(300.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_icon),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxHeight()
-                )
-                Spacer(modifier = Modifier.width(Dimens.SmallPadding))
-                Text(
-                    text = stringResource(id = R.string.app_name),
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            }
-            Divider()
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(Dimens.SmallPadding)
-            ) {
-                items(navigationItems) { item ->
-                    NavigationDrawerItem(
-                        label = { Text(text = item.title) },
-                        icon = { Icon(imageVector = item.icon, contentDescription = null) },
-                        selected = currentRoute == item.route,
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = AccentColor.copy(alpha = 0.7f)
-                        ),
-                        onClick = {
-                            if (currentRoute != item.route) {
-                                scope.launch { drawerState.close() }
-                                updateRoute(item.route)
-                                onNavigateToRoute(item.route)
-                            }
-                        })
+                Row(
+                    modifier = Modifier.height(200.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_icon),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxHeight()
+                    )
+                    Spacer(modifier = Modifier.width(Dimens.SmallPadding))
+                    Text(
+                        text = stringResource(id = R.string.app_name),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
                 }
-            }
+                Divider()
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimens.SmallPadding)
+                ) {
+                    items(navigationItems) { item ->
+                        NavigationDrawerItem(
+                            label = { Text(text = item.title) },
+                            icon = { Icon(imageVector = item.icon, contentDescription = null) },
+                            selected = currentRoute == item.route,
+                            colors = NavigationDrawerItemDefaults.colors(
+                                selectedContainerColor = AccentColor.copy(alpha = 0.7f)
+                            ),
+                            onClick = {
+                                if (currentRoute != item.route) {
+                                    scope.launch { drawerState.close() }
+                                    updateRoute(item.route)
+                                    onNavigateToRoute(item.route)
+                                }
+                            })
+                    }
+                }
 
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = stringResource(R.string.version) + BuildConfig.VERSION_NAME,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(bottom = Dimens.SmallPadding)
-            )
-        }
-    }) {
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = stringResource(R.string.version) + BuildConfig.VERSION_NAME,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = Dimens.SmallPadding)
+                )
+            }
+        }) {
         CustomScaffold(
             title = {
                 Text(text = title, color = Color.White)
@@ -133,7 +134,9 @@ fun CustomNavigationDrawer(
                     }
                 }) {
                     Icon(
-                        imageVector = Icons.Filled.Menu, tint = Color.White, contentDescription = null
+                        imageVector = Icons.Filled.Menu,
+                        tint = Color.White,
+                        contentDescription = null
                     )
                 }
             },

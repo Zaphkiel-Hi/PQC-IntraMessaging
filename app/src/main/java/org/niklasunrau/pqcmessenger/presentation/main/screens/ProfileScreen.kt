@@ -29,7 +29,8 @@ fun ProfileScreen(
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding),
-        ) { Text(text = uiState.currentUser.username)
+        ) {
+            Text(text = uiState.currentUser.username)
         }
     }
 }
