@@ -61,12 +61,20 @@ fun LogInScreen(
             )
         }
         Spacer(modifier = Modifier.height(LargePadding))
-        AutoSizeText(text = stringResource(id = R.string.login), style = MaterialTheme.typography.displayMedium)
-        AutoSizeText(text = "Welcome to the Post-Quantum Messenger", style = MaterialTheme.typography.bodyLarge)
+        AutoSizeText(
+            text = stringResource(id = R.string.login),
+            style = MaterialTheme.typography.displayMedium
+        )
+        AutoSizeText(
+            text = "Welcome to the Post-Quantum Messenger",
+            style = MaterialTheme.typography.bodyLarge
+        )
         Spacer(modifier = Modifier.height(MediumPadding))
-        LogInTextField(label = stringResource(id = R.string.email),
+        LogInTextField(
+            label = stringResource(id = R.string.email),
             icon = Icons.Outlined.Email,
             value = uiState.email,
+            type = KeyboardType.Email,
             errorText = uiState.emailError.asString(),
             onValueChanged = {
                 viewModel.onEmailChange(it)
@@ -118,5 +126,6 @@ private fun Preview() {
         onNavigateToResetPassword = { },
         onNavigateToSignUp = { },
         onNavigateToMain = { },
-        AuthViewModel(AuthRepositoryTest(), UserRepositoryTest()))
+        AuthViewModel(AuthRepositoryTest(), UserRepositoryTest())
+    )
 }

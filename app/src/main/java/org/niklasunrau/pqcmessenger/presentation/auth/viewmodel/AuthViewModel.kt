@@ -29,10 +29,6 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUIState())
     val uiState = _uiState.asStateFlow()
 
-    fun isUserSignedIn(): Boolean {
-        return authRepository.isUserSignedIn
-    }
-
     fun onUsernameChange(username: String) {
         _uiState.update { it.copy(username = username, usernameError = UiText.DynamicString("")) }
 

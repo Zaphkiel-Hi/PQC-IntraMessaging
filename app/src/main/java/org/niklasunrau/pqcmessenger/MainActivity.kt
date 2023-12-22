@@ -14,6 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
@@ -43,20 +44,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             MessengerTheme {
                 val navController = rememberNavController()
-                val authViewModel = hiltViewModel<AuthViewModel>()
+                val appViewModel = hiltViewModel<AppViewModel>()
 
-                fun navToMain() {
-                    navController.navigate(Route.Main.name) {
-                        popUpTo(Route.Auth.name){
-                            inclusive = true
-                        }
+                fun NavOptionsBuilder.popUpToTop(navController: NavController) {
+                    popUpTo(navController.currentBackStackEntry?.destination?.route ?: return) {
+                        inclusive = true
                     }
                 }
-                fun navigateWithPopUp(route: Route){
-                    navController.navigate(Route.Main.name) {
-                        popUpTo(Route.Auth.name){
-                            inclusive = true
-                        }
+
+                fun navigateTo(route: Route, withPopUp: Boolean = false) {
+                    navController.navigate(route.name) {
+                        if (withPopUp)
+                            popUpToTop(navController)
                     }
                 }
                 Surface(
@@ -65,7 +64,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(
                         navController = navController,
-                        startDestination = if (authViewModel.isUserSignedIn()) Route.Main.name else Route.Auth.name,
+                        startDestination = if (appViewModel.isUserSignedIn()) Route.Main.name else Route.Auth.name,
                         modifier = Modifier.fillMaxSize(),
 
                         ) {
@@ -75,25 +74,25 @@ class MainActivity : ComponentActivity() {
                         ) {
                             composable(Route.Start.name) {
                                 StartScreen(
-                                    onNavigateToLogIn = { navController.navigate(Route.LogIn.name) },
-                                    onNavigateToSignUp = { navController.navigate(Route.SignUp.name) },
+                                    onNavigateToLogIn = { navigateTo(Route.LogIn) },
+                                    onNavigateToSignUp = { navigateTo(Route.SignUp) },
                                 )
                             }
                             composable(Route.LogIn.name) {
                                 LogInScreen(
-                                    onNavigateToStart = { navController.navigate(Route.Start.name) },
-                                    onNavigateToResetPassword = { navController.navigate(Route.ResetPassword.name) },
-                                    onNavigateToSignUp = { navController.navigate(Route.SignUp.name) },
-                                    onNavigateToMain = { navToMain() },
+                                    onNavigateToStart = { navigateTo(Route.Start) },
+                                    onNavigateToResetPassword = { navigateTo(Route.ResetPassword) },
+                                    onNavigateToSignUp = { navigateTo(Route.SignUp) },
+                                    onNavigateToMain = { navigateTo(Route.Main, true) },
                                     viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
 
                                 )
                             }
                             composable(Route.SignUp.name) {
                                 SignUpScreen(
-                                    onNavigateToStart = { navController.navigate(Route.Start.name) },
-                                    onNavigateToLogIn = { navController.navigate(Route.LogIn.name) },
-                                    onNavigateToMain = { navToMain() },
+                                    onNavigateToStart = { navigateTo(Route.Start) },
+                                    onNavigateToLogIn = { navigateTo(Route.LogIn) },
+                                    onNavigateToMain = { navigateTo(Route.Main, true) },
                                     viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
                                 )
                             }
@@ -107,14 +106,8 @@ class MainActivity : ComponentActivity() {
                         ) {
                             composable(Route.Chats.name) {
                                 ChatsScreen(
-                                    onNavigateToRoute = { route -> navController.navigate(route.name) },
-                                    onNavigateToAuth = {
-                                        navController.navigate(Route.Auth.name) {
-                                            popUpTo(Route.Main.name){
-                                                inclusive = true
-                                            }
-                                        }
-                                    },
+                                    onNavigateToRoute = { route -> navigateTo(route, true) },
+                                    onNavigateToAuth = { navigateTo(Route.Auth, true) },
                                     onNavigateToSingleChat = { chatId ->
                                         navController.navigate(Route.SingleChat.name + "/" + chatId)
                                     },
@@ -123,20 +116,20 @@ class MainActivity : ComponentActivity() {
                             }
                             composable(Route.Profile.name) {
                                 ProfileScreen(
-                                    onNavigateToRoute = { route -> navController.navigate(route.name) },
+                                    onNavigateToRoute = { route -> navigateTo(route, true) },
                                     viewModel = it.sharedViewModel<MainViewModel>(navController = navController)
                                 )
                             }
                             composable(Route.Settings.name) {
                                 SettingsScreen(
-                                    onNavigateToRoute = { route -> navController.navigate(route.name) },
+                                    onNavigateToRoute = { route -> navigateTo(route, true) },
                                     viewModel = it.sharedViewModel<MainViewModel>(navController = navController)
                                 )
 
                             }
                             composable(Route.Contact.name) {
                                 ContactScreen(
-                                    onNavigateToRoute = { route -> navController.navigate(route.name) },
+                                    onNavigateToRoute = { route -> navigateTo(route, true) },
                                     viewModel = it.sharedViewModel<MainViewModel>(navController = navController)
                                 )
                             }
@@ -145,8 +138,13 @@ class MainActivity : ComponentActivity() {
                             ) { navBackStackEntry ->
                                 val chatId = navBackStackEntry.arguments?.getString("chatId")
                                 chatId?.let {
-                                    SingleChatScreen(chatId = it,
-                                        onNavigateToChats = { navController.navigate(Route.Chats.name) })
+                                    SingleChatScreen(
+                                        chatId = it,
+                                        onNavigateToChats = {  navController.popBackStack() },
+                                        viewModel = navBackStackEntry.sharedViewModel<MainViewModel>(
+                                            navController = navController
+                                        )
+                                    )
                                 }
                             }
                         }

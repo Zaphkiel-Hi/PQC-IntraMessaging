@@ -125,7 +125,7 @@ fun CustomNavigationDrawer(
             title = {
                 Text(text = title, color = Color.White)
             },
-            navigation = {
+            navigationIcon = {
                 IconButton(onClick = {
                     scope.launch {
                         drawerState.apply {
@@ -151,7 +151,7 @@ fun CustomNavigationDrawer(
 @Composable
 fun CustomScaffold(
     title: @Composable () -> Unit,
-    navigation: @Composable () -> Unit,
+    navigationIcon: @Composable () -> Unit,
     actions: @Composable RowScope.() -> Unit,
     floatingActionButton: @Composable () -> Unit,
     content: @Composable (PaddingValues) -> Unit
@@ -163,7 +163,7 @@ fun CustomScaffold(
                     containerColor = PrimaryColor
                 ),
                 title = title,
-                navigationIcon = navigation,
+                navigationIcon = navigationIcon,
                 actions = actions
             )
         },
