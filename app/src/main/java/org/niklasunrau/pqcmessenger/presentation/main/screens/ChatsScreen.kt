@@ -72,7 +72,7 @@ fun ChatsScreen(
         title = stringResource(id = R.string.app_name),
         navigationItems = viewModel.navigationItemsList,
         currentRoute = uiState.currentRoute,
-        updateRoute = viewModel::updateCurrentRoute,
+        updateRoute = viewModel::onCurrentRouteChange,
         onNavigateToRoute = onNavigateToRoute,
         actions = {
             IconButton(onClick = {
@@ -95,7 +95,11 @@ fun ChatsScreen(
                 containerColor = PrimaryColor,
                 modifier = Modifier.padding(bottom = SmallPadding, end = SmallPadding)
             ) {
-                Icon(imageVector = Icons.Filled.Message, contentDescription = null, tint = Color.White)
+                Icon(
+                    imageVector = Icons.Filled.Message,
+                    contentDescription = null,
+                    tint = Color.White
+                )
             }
         }
     ) { paddingValues ->
@@ -142,12 +146,13 @@ fun ChatsScreen(
                         text = stringResource(R.string.start_chat),
                         onClicked = {
                             scope.launch {
-                                viewModel.startNewSingleChat(uiState.newChatUsername).collectLatest { successful ->
-                                    if (successful) {
-                                        showAddDialog = false
-                                        viewModel.onUsernameChange("")
+                                viewModel.startNewSingleChat(uiState.newChatUsername)
+                                    .collectLatest { successful ->
+                                        if (successful) {
+                                            showAddDialog = false
+                                            viewModel.onUsernameChange("")
+                                        }
                                     }
-                                }
                             }
                         }
                     )
@@ -155,7 +160,7 @@ fun ChatsScreen(
             )
         }
 
-        if (uiState.chats.isEmpty()) {
+        if (uiState.idToChat.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -170,7 +175,7 @@ fun ChatsScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                items(uiState.chats) { chat ->
+                items(uiState.idToChat.values.toList()) { chat ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -180,21 +185,19 @@ fun ChatsScreen(
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        AsyncImage(
-                            model = chat.icon, contentDescription = null, modifier = Modifier
-                                .padding(
-                                    SmallPadding
-                                )
-                                .size(50.dp)
-                                .clip(
-                                    CircleShape
-                                )
-                                .background(Color.White)
-                        )
                         if (chat.type == ChatType.SINGLE) {
                             val otherUserId = viewModel.getOtherUserId(chat)
-                            val otherUser = uiState.idsToUser[otherUserId]
+                            val otherUser = uiState.idToUser[otherUserId]
                             otherUser?.let {
+                                AsyncImage(
+                                    model = it.image,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .padding(SmallPadding)
+                                        .size(50.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White)
+                                )
                                 Column(
                                     modifier = Modifier.padding(start = SmallPadding),
                                     verticalArrangement = Arrangement.Center
@@ -204,12 +207,17 @@ fun ChatsScreen(
                                         color = Color.White,
                                         style = MaterialTheme.typography.titleLarge,
                                     )
-                                    Text(
-                                        text = chat.recentMessage,
-                                        color = Color.White
-                                    )
+                                    if(chat.lastMessage != "") {
+                                        Text(
+                                            text = chat.lastMessage,
+                                            color = Color.Gray,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                        )
+                                    }
                                 }
                             }
+                        }else{
+                            TODO("groups chats")
                         }
                     }
                     Divider()

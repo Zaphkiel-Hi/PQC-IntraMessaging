@@ -110,7 +110,7 @@ fun LogInTextField(
 @Composable
 fun ReplyTextField(value: String, onValueChange: (String) -> Unit, onSendClicked: () -> Unit){
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().padding(top = SmallPadding)
     ) {
         Divider()
         Row(

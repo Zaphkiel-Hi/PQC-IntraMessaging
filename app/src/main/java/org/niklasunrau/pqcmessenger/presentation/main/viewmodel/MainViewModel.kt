@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.toObject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.niklasunrau.pqcmessenger.R
 import org.niklasunrau.pqcmessenger.domain.model.Chat
+import org.niklasunrau.pqcmessenger.domain.model.Message
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.ChatRepository
@@ -41,27 +43,39 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val chats = chatRepository.getUserChats(authRepository.currentUserId)
-            for (chat in chats)
-                if (chat.type == ChatType.SINGLE)
-                    saveOtherUser(chat)
             val currentUser = userRepository.getUserById(authRepository.currentUserId)!!
-            _uiState.update { it.copy(chats = chats, currentUser = currentUser) }
+            _uiState.update { it.copy(currentUser = currentUser) }
+
+            val chats = chatRepository.getUserChats(currentUser.id)
+            val idToChat = mutableMapOf<String, Chat>()
+            for (chat in chats) {
+                if (chat.type == ChatType.SINGLE) {
+                    val otherUser = saveOtherUser(chat)
+                    val newChat = chat.copy(name = otherUser.username, icon = otherUser.image)
+                    idToChat[newChat.id] = newChat
+                } else {
+                    TODO("groups exist")
+                }
+
+            }
+            _uiState.update { it.copy(idToChat = idToChat) }
         }
     }
 
     fun getOtherUserId(chat: Chat) =
-        if (chat.users[0] != authRepository.currentUserId) chat.users[0] else chat.users[1]
+        if (chat.users[0] != _uiState.value.currentUser.id) chat.users[0] else chat.users[1]
 
-    private suspend fun saveOtherUser(chat: Chat) {
+    private suspend fun saveOtherUser(chat: Chat): User {
         val otherUserId = getOtherUserId(chat)
         val otherUser = userRepository.getUserById(otherUserId)!!
         saveUserWithId(otherUser)
+        return otherUser
     }
 
     private fun saveUserWithId(user: User) {
+        _uiState.value.idToUser[user.id] = user
         _uiState.update {
-            it.copy(idsToUser = _uiState.value.idsToUser + Pair(user.id, user))
+            it.copy(idToUser = _uiState.value.idToUser)
         }
     }
 
@@ -80,26 +94,33 @@ class MainViewModel @Inject constructor(
         ),
     )
 
-    fun updateCurrentRoute(newRoute: Route) {
+    fun onCurrentRouteChange(newRoute: Route) {
         _uiState.update { it.copy(currentRoute = newRoute) }
     }
 
-    fun onUsernameChange(username: String) {
-        _uiState.update { it.copy(newChatUsername = username, newChatError = UiText.DynamicString("")) }
+    fun onCurrentTextChange(newText: String) {
+        _uiState.update { it.copy(currentText = newText) }
 
     }
 
+    fun onUsernameChange(username: String) {
+        _uiState.update {
+            it.copy(
+                newChatUsername = username, newChatError = UiText.DynamicString("")
+            )
+        }
+
+    }
 
     fun singOut() {
         authRepository.signOut()
     }
 
-
     fun startNewSingleChat(newChatUsername: String): Flow<Boolean> {
         return flow {
 
-            _uiState.value.chats.forEach { chat ->
-                if (newChatUsername in chat.users) {
+            _uiState.value.idToChat.forEach { chat ->
+                if (newChatUsername in chat.value.users) {
                     _uiState.update { it.copy(newChatError = UiText.StringResource(R.string.chat_already_exists)) }
                     currentCoroutineContext().cancel()
                 }
@@ -118,12 +139,69 @@ class MainViewModel @Inject constructor(
                 _uiState.update { it.copy(newChatError = UiText.StringResource(R.string.user_not_found)) }
             } else {
                 saveUserWithId(user)
-                var newChat = Chat(listOf(authRepository.currentUserId, user.id))
+                var newChat = Chat(listOf(_uiState.value.currentUser.id, user.id))
                 val newId = chatRepository.startNewChat(newChat)
                 newChat = newChat.copy(id = newId)
-                _uiState.update { it.copy(chats = _uiState.value.chats + newChat) }
+
+                _uiState.value.idToChat[newChat.id] = newChat
+                _uiState.update {
+                    it.copy(idToChat = _uiState.value.idToChat)
+                }
                 emit(true)
             }
         }
     }
+
+    fun onSendMessage(chatId: String, text: String) {
+        if (text.isBlank()) return
+        val currentTime = System.currentTimeMillis()
+        val message = Message(_uiState.value.currentUser.id, text, currentTime)
+        viewModelScope.launch {
+            chatRepository.sendMessage(chatId, message)
+        }
+        _uiState.update { it.copy(currentText = "") }
+    }
+
+    fun initializeChat(chatId: String) {
+        viewModelScope.launch {
+            _uiState.update { mainUIState ->
+                mainUIState.copy(currentChatListener = chatRepository.getMessagesCollection(chatId)
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) return@addSnapshotListener
+                        if (snapshot != null) {
+                            _uiState.update { mainUIState ->
+                                mainUIState.copy(currentChatMessages = snapshot.documents.mapNotNull {
+                                    it.toObject<Message>()
+                                }.sortedBy { it.timestamp })
+                            }
+                        }
+                    })
+            }
+        }
+    }
+
+    fun closeChat(chatId: String) {
+        val currentMessages = _uiState.value.currentChatMessages
+        val lastMessage = if (currentMessages.isNotEmpty()) currentMessages.last().text else ""
+        viewModelScope.launch {
+            chatRepository.updateLastMessage(
+                chatId, lastMessage
+            )
+        }
+        val chats = _uiState.value.idToChat
+        val newChat = chats[chatId]!!.copy(lastMessage = lastMessage)
+        chats.replace(chatId, newChat)
+        _uiState.update {
+            it.copy(
+                idToChat = chats,
+                currentText = "",
+                currentChatListener = null,
+                currentChatMessages = listOf()
+            )
+        }
+
+
+    }
+
+
 }

@@ -24,7 +24,7 @@ fun ProfileScreen(
         title = stringResource(id = R.string.profile),
         navigationItems = viewModel.navigationItemsList,
         currentRoute = uiState.currentRoute,
-        updateRoute = viewModel::updateCurrentRoute,
+        updateRoute = viewModel::onCurrentRouteChange,
         onNavigateToRoute = onNavigateToRoute
     ) { innerPadding ->
         Column(

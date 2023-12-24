@@ -8,7 +8,7 @@ data class Chat(
     val name: String = "",
     val icon: String = "",
     val type: ChatType = ChatType.SINGLE,
-    val recentMessage: String = "",
+    val lastMessage: String = "",
 ){
     constructor() : this(listOf())
 }
