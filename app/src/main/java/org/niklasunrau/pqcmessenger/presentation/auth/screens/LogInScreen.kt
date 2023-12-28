@@ -126,6 +126,6 @@ private fun Preview() {
         onNavigateToResetPassword = { },
         onNavigateToSignUp = { },
         onNavigateToMain = { },
-        AuthViewModel(AuthRepositoryTest(), UserRepositoryTest())
+        AuthViewModel(AuthRepositoryTest(), UserRepositoryTest(), )
     )
 }

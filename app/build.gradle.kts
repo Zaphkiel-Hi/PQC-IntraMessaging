@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
     id("com.google.dagger.hilt.android")
+    id("com.chaquo.python")
 }
 
 android {
@@ -21,12 +22,16 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        ndk {
+            abiFilters += listOf("arm64-v8a"/*, "armeabi-v7a", "x86", "x86_64"*/)
+        }
     }
 
     buildTypes {
         release {
             buildConfigField("long", "VERSION_CODE", "${defaultConfig.versionCode}")
-            buildConfigField("String","VERSION_NAME","\"${defaultConfig.versionName}\"")
+            buildConfigField("String", "VERSION_NAME", "\"${defaultConfig.versionName}\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -35,7 +40,7 @@ android {
         }
         debug {
             buildConfigField("long", "VERSION_CODE", "${defaultConfig.versionCode}")
-            buildConfigField("String","VERSION_NAME","\"${defaultConfig.versionName}\"")
+            buildConfigField("String", "VERSION_NAME", "\"${defaultConfig.versionName}\"")
         }
     }
     compileOptions {
@@ -58,10 +63,25 @@ android {
         }
     }
 }
+chaquopy {
+    defaultConfig {
+        buildPython("/Library/Frameworks/Python.framework/Versions/3.11/bin/python3")
+        version = "3.11"
+        pip {
+            install("llvmlite==0.41.1")
+            install("numpy==1.25.1")
+            install("numba==0.58.1")
+            install("galois")
+        }
+
+    }
+
+}
 
 kapt {
     correctErrorTypes = true
 }
+
 dependencies {
 
     implementation("androidx.core:core-ktx:1.12.0")
@@ -92,8 +112,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics:21.5.0")
     implementation("com.google.firebase:firebase-firestore:24.10.0")
 
-    implementation("com.google.dagger:hilt-android:2.49")
-    kapt("com.google.dagger:hilt-android-compiler:2.49")
+    implementation("com.google.dagger:hilt-android:2.50")
+    kapt("com.google.dagger:hilt-android-compiler:2.50")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
