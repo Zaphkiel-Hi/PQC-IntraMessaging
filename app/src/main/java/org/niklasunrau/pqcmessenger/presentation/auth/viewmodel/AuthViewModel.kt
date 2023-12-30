@@ -31,12 +31,13 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUIState())
     val uiState = _uiState.asStateFlow()
 
-    init{
+    fun generate() {
         val m = 4
         val t = 2
         val n = pow(2, m)
         val gc = GoppaCode(n, m, t)
     }
+
 
     fun onUsernameChange(username: String) {
         _uiState.update { it.copy(username = username, usernameError = UiText.DynamicString("")) }
@@ -52,7 +53,12 @@ class AuthViewModel @Inject constructor(
     }
 
     fun onConfirmPasswordChange(confirmPassword: String) {
-        _uiState.update { it.copy(confirmPassword = confirmPassword, confirmPasswordError = UiText.DynamicString("")) }
+        _uiState.update {
+            it.copy(
+                confirmPassword = confirmPassword,
+                confirmPasswordError = UiText.DynamicString("")
+            )
+        }
     }
 
 
@@ -103,9 +109,13 @@ class AuthViewModel @Inject constructor(
         val confirmPasswordValid = _uiState.value.confirmPassword.isNotBlank()
         _uiState.update { currentState ->
             currentState.copy(
-                usernameError = if (usernameValid) currentState.usernameError else UiText.StringResource(R.string.cannot_be_empty),
+                usernameError = if (usernameValid) currentState.usernameError else UiText.StringResource(
+                    R.string.cannot_be_empty
+                ),
                 emailError = if (emailValid) currentState.emailError else UiText.StringResource(R.string.cannot_be_empty),
-                passwordError = if (passwordValid) currentState.passwordError else UiText.StringResource(R.string.cannot_be_empty),
+                passwordError = if (passwordValid) currentState.passwordError else UiText.StringResource(
+                    R.string.cannot_be_empty
+                ),
                 confirmPasswordError = if (confirmPasswordValid) currentState.confirmPasswordError else UiText.StringResource(
                     R.string.cannot_be_empty
                 )

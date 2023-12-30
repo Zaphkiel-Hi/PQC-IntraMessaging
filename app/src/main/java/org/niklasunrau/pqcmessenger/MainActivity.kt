@@ -86,6 +86,8 @@ class MainActivity : ComponentActivity() {
                                 StartScreen(
                                     onNavigateToLogIn = { navigateTo(Route.LogIn) },
                                     onNavigateToSignUp = { navigateTo(Route.SignUp) },
+                                    viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
+
                                 )
                             }
                             composable(Route.LogIn.name) {

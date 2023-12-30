@@ -16,7 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import org.niklasunrau.pqcmessenger.R
+import org.niklasunrau.pqcmessenger.presentation.auth.viewmodel.AuthViewModel
 import org.niklasunrau.pqcmessenger.presentation.composables.AutoSizeText
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomFilledButton
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomOutlinedButton
@@ -27,7 +29,8 @@ import org.niklasunrau.pqcmessenger.presentation.util.Dimens.SmallPadding
 @Composable
 fun StartScreen(
     onNavigateToLogIn: () -> Unit,
-    onNavigateToSignUp: () -> Unit
+    onNavigateToSignUp: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     Column(
         modifier = Modifier
@@ -48,7 +51,10 @@ fun StartScreen(
             )
         }
         Spacer(modifier = Modifier.height(MediumPadding))
-        Text(text = stringResource(id = R.string.hello), style = MaterialTheme.typography.displayLarge)
+        Text(
+            text = stringResource(id = R.string.hello),
+            style = MaterialTheme.typography.displayLarge
+        )
         AutoSizeText(
             text = stringResource(id = R.string.welcome),
             style = MaterialTheme.typography.headlineSmall
@@ -68,6 +74,11 @@ fun StartScreen(
         CustomOutlinedButton(
             text = stringResource(id = R.string.signup),
             onClicked = onNavigateToSignUp,
+            modifier = Modifier.padding(horizontal = SmallPadding)
+        )
+        CustomOutlinedButton(
+            text = "Generate",
+            onClicked = { viewModel.generate() },
             modifier = Modifier.padding(horizontal = SmallPadding)
         )
     }

@@ -1,9 +1,12 @@
 package org.niklasunrau.pqcmessenger.domain.crypto.mceliece
 
 import android.util.Log
+import cc.redberry.rings.IntegersZp64
 import cc.redberry.rings.Rings.GF
+import cc.redberry.rings.linear.LinearSolver
 import cc.redberry.rings.poly.FiniteField
 import cc.redberry.rings.poly.univar.IrreduciblePolynomials.randomIrreduciblePolynomial
+import cc.redberry.rings.poly.univar.UnivariatePolynomial
 import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64
 import org.apache.commons.math3.random.MersenneTwister
 import org.jetbrains.kotlinx.multik.api.mk
@@ -15,18 +18,20 @@ import kotlin.streams.toList
 
 
 class GoppaCode(
-    private val n: Int, private val m: Int, private val t: Int
+    private var n: Int, private val m: Int, private val t: Int
 ) {
-    init {
-        val ff2m = GF(2, m)
-        val support = ff2m.iterator().asSequence().toList()
-        val goppaPolynomial = randomIrreduciblePolynomial(ff2m, t, MersenneTwister())
+    val gMatrix: Array<LongArray>
+    val ff2m: FiniteField<UnivariatePolynomialZp64> = GF(2, m)
+    val support: List<UnivariatePolynomialZp64> = ff2m.iterator().asSequence().toList()
+    val gPoly: UnivariatePolynomial<UnivariatePolynomialZp64> =
+        randomIrreduciblePolynomial(ff2m, t, MersenneTwister())
 
+    init {
         val xMatrix = Array(t) { Array(t) { ff2m.zero } }
         for (row in 0 until t) {
             for (col in 0 until t) {
                 if (row - col in 0 until t) {
-                    xMatrix[row][col] = goppaPolynomial[t - (row - col)]
+                    xMatrix[row][col] = gPoly[t - (row - col)]
                 }
             }
         }
@@ -42,7 +47,7 @@ class GoppaCode(
         for (row in 0 until n) {
             for (col in 0 until n) {
                 if (row == col) {
-                    zMatrix[row][col] = ff2m.pow(goppaPolynomial.evaluate(support[row]), -1)
+                    zMatrix[row][col] = ff2m.pow(gPoly.evaluate(support[row]), -1)
                 }
             }
         }
@@ -101,7 +106,19 @@ class GoppaCode(
                 hBinMatrix.append(rowMatrix, 0)
             }
         }
-        val array = kernel(hBinMatrix.toArray())
-        Log.d("MCELIECE2", array.toString())
+        Log.d("MCELIECE", "TEST")
+
+        val m = hBinMatrix.shape[0]
+        val lhsArray = hBinMatrix.toArray()
+        val rhsArray = LongArray(m) { 0 }
+
+        LinearSolver.rowEchelonForm(
+            IntegersZp64(2),
+            lhsArray,
+            rhsArray,
+            true,
+            false
+        )
+        gMatrix = nullspace(lhsArray)
     }
 }
