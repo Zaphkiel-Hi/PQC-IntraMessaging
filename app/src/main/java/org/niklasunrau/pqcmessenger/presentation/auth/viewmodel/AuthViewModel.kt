@@ -2,6 +2,7 @@ package org.niklasunrau.pqcmessenger.presentation.auth.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.common.math.IntMath.pow
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.niklasunrau.pqcmessenger.R
+import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.GoppaCode
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
@@ -28,6 +30,13 @@ class AuthViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUIState())
     val uiState = _uiState.asStateFlow()
+
+    init{
+        val m = 4
+        val t = 2
+        val n = pow(2, m)
+        val gc = GoppaCode(n, m, t)
+    }
 
     fun onUsernameChange(username: String) {
         _uiState.update { it.copy(username = username, usernameError = UiText.DynamicString("")) }

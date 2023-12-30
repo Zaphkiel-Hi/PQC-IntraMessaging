@@ -4,7 +4,6 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
     id("com.google.dagger.hilt.android")
-    id("com.chaquo.python")
 }
 
 android {
@@ -21,10 +20,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
-        }
-
-        ndk {
-            abiFilters += listOf("arm64-v8a"/*, "armeabi-v7a", "x86", "x86_64"*/)
         }
     }
 
@@ -62,20 +57,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-}
-chaquopy {
-    defaultConfig {
-        buildPython("/Library/Frameworks/Python.framework/Versions/3.11/bin/python3")
-        version = "3.11"
-        pip {
-            install("llvmlite==0.41.1")
-            install("numpy==1.25.1")
-            install("numba==0.58.1")
-            install("galois")
-        }
-
-    }
-
 }
 
 kapt {
@@ -118,5 +99,10 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.5.0")
 
+    implementation("cc.redberry:rings:2.5.8")
+
+
+    implementation("org.jetbrains.kotlinx:multik-core:0.2.2")
+    implementation("org.jetbrains.kotlinx:multik-kotlin:0.2.2")
 }
 
