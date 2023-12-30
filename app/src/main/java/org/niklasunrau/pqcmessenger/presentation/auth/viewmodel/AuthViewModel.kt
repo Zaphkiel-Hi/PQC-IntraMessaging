@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.niklasunrau.pqcmessenger.R
-import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.GoppaCode
+import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.generateShuffleMatrix
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
@@ -35,7 +35,7 @@ class AuthViewModel @Inject constructor(
         val m = 4
         val t = 2
         val n = pow(2, m)
-        val gc = GoppaCode(n, m, t)
+        val sk = generateShuffleMatrix(3)
     }
 
 
