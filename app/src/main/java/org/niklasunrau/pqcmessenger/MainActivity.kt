@@ -42,14 +42,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
 
-//        if(!Python.isStarted()){
-//            Python.start(AndroidPlatform(this))
-//        }
-//        val py = Python.getInstance()
-//        val module = py.getModule( "mceliece" )
-//        val mceliece = module["McEliece"] // .call(8, 10)
-//        Log.d("TEST", mceliece.toString())
-
         installSplashScreen()
         setContent {
             MessengerTheme {

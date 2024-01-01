@@ -52,8 +52,8 @@ fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
     }
 
 
-    val xyMatrix = multiplyMatrices(ff2m, xMatrix, yMatrix)
-    val hMatrix = multiplyMatrices(ff2m, xyMatrix, zMatrix)
+    val xyMatrix = multiplyFieldMatrices(ff2m, xMatrix, yMatrix)
+    val hMatrix = multiplyFieldMatrices(ff2m, xyMatrix, zMatrix)
 
 
     var hBinMatrix = mk.zeros<Long>(1, 1)
@@ -84,11 +84,17 @@ fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
     return GoppaCode(nullspace(lhsArray), ff2m, support, gPoly)
 }
 
-fun pattersonAlgorithm(){
+private fun pattersonAlgorithm(unshuffledCipher: LongArray, goppaCode: GoppaCode): LongArray {
+    val inversePolys = listOf<UnivariatePolynomialZp64>()
+
 
 }
 
-fun decode(){
+fun decode(unshuffledCipher: LongArray, goppaCode: GoppaCode): Array<LongArray> {
+    val k = goppaCode.gMatrix.size
+    val fixedMessage = pattersonAlgorithm(unshuffledCipher, )
 
+    val
+    val systemToSolve =
 }
 

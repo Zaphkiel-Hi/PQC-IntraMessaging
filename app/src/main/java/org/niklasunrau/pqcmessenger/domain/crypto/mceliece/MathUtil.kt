@@ -12,8 +12,26 @@ import org.jetbrains.kotlinx.multik.ndarray.data.get
 import org.jetbrains.kotlinx.multik.ndarray.operations.append
 import org.jetbrains.kotlinx.multik.ndarray.operations.toArray
 
+fun <T> multiplyBinaryMatrices(
+    matrix1: Array<Array<T>>,
+    matrix2: Array<Array<T>>
+): Array<LongArray> {
+    val row1 = matrix1.size
+    val col1 = matrix1[0].size
+    val col2 = matrix2[0].size
+    val product = Array(row1) { LongArray(col2) {0L} }
 
-fun multiplyMatrices(
+    for (i in 0 until row1) {
+        for (j in 0 until col2) {
+            for (k in 0 until col1) {
+                product[i][j] = (product[i][j] + matrix1[i][k] * matrix2[k][j]) % 2
+            }
+        }
+    }
+    return product
+}
+
+fun multiplyFieldMatrices(
     finiteField: FiniteField<UnivariatePolynomialZp64>,
     matrix1: Array<Array<UnivariatePolynomialZp64>>,
     matrix2: Array<Array<UnivariatePolynomialZp64>>
@@ -84,16 +102,15 @@ fun generatePermMatrix(n: Int): Array<LongArray> {
 
 fun generateShuffleMatrix(n: Int): Array<LongArray> {
     while (true) {
-        Log.d("MCEL", "TRY")
         val candidate = mk.rand<Long, D2>(0, 2, IntArray(2) { n }).toArray()
         if (detMod2(candidate) == 1){
-            Log.d("MCEL", candidate.contentDeepToString())
             return candidate
         }
 
     }
 }
 fun Array<LongArray>.deepCopy() = Array(size) { get(it).clone() }
+
 private fun detMod2(array: Array<LongArray>): Int {
     val n = array.size
     val matrix = array.deepCopy()
@@ -121,3 +138,21 @@ private fun detMod2(array: Array<LongArray>): Int {
     }
     return 1
 }
+
+fun inverseModPoly(poly: UnivariatePolynomialZp64, mod: UnivariatePolynomialZp64): UnivariatePolynomialZp64 {
+
+}
+
+fun splitPoly(poly: UnivariatePolynomialZp64): Pair<UnivariatePolynomialZp64, UnivariatePolynomialZp64> {
+
+}
+
+fun sqrtModPoly(poly: UnivariatePolynomialZp64, mod: UnivariatePolynomialZp64){
+
+}
+
+fun norm(aPoly: UnivariatePolynomialZp64, bPoly: UnivariatePolynomialZp64): Int{
+
+}
+
+fun latticeBasisReuction(poly: UnivariatePolynomialZp64, mod: UnivariatePolynomialZp64)
