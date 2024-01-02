@@ -5,23 +5,53 @@ import org.jetbrains.kotlinx.multik.api.linalg.inv
 import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
 import org.jetbrains.kotlinx.multik.ndarray.operations.toArray
-import org.jetbrains.kotlinx.multik.ndarray.operations.toListD2
 
-data class McElieceSecretkey(
-    val shuffleInvMatrix: Array<DoubleArray>,
-    val permInvMatrix: Array<DoubleArray>,
+data class McElieceSecretKey(
+    val shuffleInvMatrix: Array<LongArray>,
+    val permInvMatrix: Array<LongArray>,
     val goppaCode: GoppaCode
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as McElieceSecretKey
+
+        if (!shuffleInvMatrix.contentDeepEquals(other.shuffleInvMatrix)) return false
+        if (!permInvMatrix.contentDeepEquals(other.permInvMatrix)) return false
+        return goppaCode == other.goppaCode
+    }
+
+    override fun hashCode(): Int {
+        var result = shuffleInvMatrix.contentDeepHashCode()
+        result = 31 * result + permInvMatrix.contentDeepHashCode()
+        result = 31 * result + goppaCode.hashCode()
+        return result
+    }
+}
 
 data class McEliecePublicKey(
     val publicMatrix: Array<LongArray>,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as McEliecePublicKey
+
+        return publicMatrix.contentDeepEquals(other.publicMatrix)
+    }
+
+    override fun hashCode(): Int {
+        return publicMatrix.contentDeepHashCode()
+    }
+}
 
 class McEliece(val m: Int, val t: Int) {
-    val n = pow(2, m)
+     val n = pow(2, m)
     val k = n - t * m
 
-    fun generateKeyPair(): Pair<McElieceSecretkey, McEliecePublicKey> {
+    fun generateKeyPair(): Pair<McElieceSecretKey, McEliecePublicKey> {
         val goppaCode = generateCode(n, m, t)
         val shuffleMatrix = generateShuffleMatrix(k)
         val permMatrix = generatePermMatrix(n)
@@ -29,12 +59,12 @@ class McEliece(val m: Int, val t: Int) {
         val sgMatrix = multiplyBinaryMatrices(shuffleMatrix, goppaCode.gMatrix)
         val publicMatrix = multiplyBinaryMatrices(sgMatrix, permMatrix)
 
-        val shuffleInvMatrix = mk.linalg.inv(mk.ndarray(shuffleMatrix)).toArray()
-        val permInvMatrix = mk.linalg.inv(mk.ndarray(permMatrix)).toArray()
+        val shuffleInvMatrix = mk.linalg.inv(mk.ndarray(shuffleMatrix.toDoubleArray())).toArray().toLongArray()
+        val permInvMatrix = mk.linalg.inv(mk.ndarray(permMatrix.toDoubleArray())).toArray().toLongArray()
 
 
         return Pair(
-            McElieceSecretkey(shuffleInvMatrix, permInvMatrix, goppaCode),
+            McElieceSecretKey(shuffleInvMatrix, permInvMatrix, goppaCode),
             McEliecePublicKey(publicMatrix)
         )
     }
@@ -51,13 +81,11 @@ class McEliece(val m: Int, val t: Int) {
         return codeword
     }
 
-    fun decrypt(cipher: LongArray, secretKey: McElieceSecretkey): LongArray {
+    fun decrypt(cipher: LongArray, secretKey: McElieceSecretKey): LongArray {
         val cipherAsMatrix = Array(1) { cipher }
-        val unshuffledCipher = multiplyBinaryMatrices(cipherAsMatrix, secretKey.shuffleInvMatrix)[0]
-        val decodedCipher = decode(unshuffledCipher, secretKey.goppaCode)
-        val message = multiplyBinaryMatrices(decodedCipher, secretKey.permInvMatrix)[0]
-
-        return message
+        val noPermCipher = multiplyBinaryMatrices(cipherAsMatrix, secretKey.permInvMatrix)[0]
+        val decodedCipher = decode(noPermCipher, secretKey.goppaCode)
+        return multiplyBinaryMatrices(decodedCipher, secretKey.permInvMatrix)[0]
     }
 
 }

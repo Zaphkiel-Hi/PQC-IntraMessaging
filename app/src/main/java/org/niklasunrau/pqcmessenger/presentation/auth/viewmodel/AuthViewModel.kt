@@ -1,8 +1,8 @@
 package org.niklasunrau.pqcmessenger.presentation.auth.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.common.math.IntMath.pow
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.niklasunrau.pqcmessenger.R
-import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.generateShuffleMatrix
+import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
@@ -34,8 +34,14 @@ class AuthViewModel @Inject constructor(
     fun generate() {
         val m = 4
         val t = 2
-        val n = pow(2, m)
-        val sk = generateShuffleMatrix(3)
+        val mcEliece = McEliece(m, t)
+        val (sk, pk) = mcEliece.generateKeyPair()
+        val message = LongArray(mcEliece.k) { 1 }
+        val cipher = mcEliece.encrypt(message, pk)
+        Log.d("McEliece", cipher.contentToString())
+        val decodedMessage = mcEliece.decrypt(cipher, sk)
+        Log.d("McEliece", decodedMessage.contentToString())
+
     }
 
 

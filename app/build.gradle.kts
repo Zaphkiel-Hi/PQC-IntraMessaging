@@ -101,7 +101,6 @@ dependencies {
 
     implementation("cc.redberry:rings:2.5.8")
 
-
     implementation("org.jetbrains.kotlinx:multik-core:0.2.2")
     implementation("org.jetbrains.kotlinx:multik-kotlin:0.2.2")
 }
