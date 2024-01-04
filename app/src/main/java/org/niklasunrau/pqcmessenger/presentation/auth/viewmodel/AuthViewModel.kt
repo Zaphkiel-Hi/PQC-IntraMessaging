@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.niklasunrau.pqcmessenger.R
 import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece
+import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.toPrettyString
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
@@ -34,14 +35,24 @@ class AuthViewModel @Inject constructor(
 
 
     fun generate() {
-        val m = 4
-        val t = 3
+        val m = 10
+        val t = 17
         val mcEliece = McEliece(m, t)
-        val (sk, pk) = mcEliece.generateKeyPair()
-        val message = LongArray(mcEliece.k) { 1 }
-        val cipher = mcEliece.encrypt(message, pk)
-        val decodedMessage = mcEliece.decrypt(cipher, sk)
-        Log.d("McEliece", decodedMessage.contentToString())
+        var test = 0
+        while(true) {
+            val (sk, pk) = mcEliece.generateKeyPair()
+            val message = LongArray(mcEliece.k) { 1 }
+            val cipher = mcEliece.encrypt(message, pk)
+            val decodedMessage = mcEliece.decrypt(cipher, sk)
+            if(decodedMessage.contains(0)) {
+                Log.d("McEliece", sk.shuffleMatrix.toPrettyString())
+                Log.d("McEliece", sk.shuffleInvMatrix.toPrettyString())
+                break
+            }
+                Log.d("McEliece", test.toString())
+            test++
+        }
+
 
     }
 

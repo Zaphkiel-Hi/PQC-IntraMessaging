@@ -66,33 +66,6 @@ fun lJustZerosList(list: List<Long>, length: Int): List<Long> {
     return returnList
 }
 
-fun swapColumns(matrix: Array<LongArray>, a: Int, b: Int) {
-    for (i in matrix.indices) {
-        val temp = matrix[i][a]
-        matrix[i][a] = matrix[i][b]
-        matrix[i][b] = temp
-    }
-}
-
-fun nullspace(matrix: Array<LongArray>): Array<LongArray> {
-    val m = matrix.size
-    val n = matrix[0].size
-
-    for (row in matrix.indices) {
-        if (matrix[row][row] != 1L) {
-            var col = row + 1
-            while (matrix[row][col] != 1L) col++
-
-            swapColumns(matrix, row, col)
-
-        }
-    }
-
-    val rhs = mk.ndarray(matrix)[0..<m, m..<n]
-    val nsp = rhs.append(mk.identity(n - m), 0).transpose()
-    return nsp.toArray()
-}
-
 fun generatePermMatrix(n: Int): Array<LongArray> {
     val initialMatrix = Array(n) { LongArray(n) { 0 } }
     val positions = (0..<n).shuffled()
@@ -136,6 +109,12 @@ private fun detMod2(array: Array<LongArray>): Int {
         }
     }
     return 1
+}
+
+fun inverse(matrix: Array<LongArray>): Array<LongArray>{
+    val aiMatrix = mk.ndarray(matrix).append(mk.identity(matrix.size), 1)
+    val (rrefMatrix, _) = aiMatrix.toArray().reducedRowEchelonForm()
+    return mk.ndarray(rrefMatrix)[matrix.indices, matrix.size..<rrefMatrix[0].size].toArray()
 }
 
 fun nonZero(array: LongArray): MutableList<Int>{

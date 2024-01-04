@@ -25,17 +25,8 @@ data class GoppaCode(
 
 fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
     val ff2m = GF(2, m)
-//        val ff2m = FiniteField(UnivariatePolynomialZ64.create(1, 1, 0, 0, 1).modulus(2))
-//    val powerToPoly = generatePowerLUT(ff2m)
     val support = ff2m.iterator().asSequence().toList()
     val gPoly = IrreduciblePolynomials.randomIrreduciblePolynomial(ff2m, t, Well19937c())
-//    val gPoly = Poly.create(
-//        ff2m,
-//        powerToPoly[2],
-//        ff2m.zero,
-//        ff2m.zero,
-//        ff2m.one
-//        )
 
     val xMatrix = Array(t) { Array(t) { ff2m.zero } }
     for (row in 0 until t) {
@@ -65,7 +56,6 @@ fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
 
     val xyMatrix = multiplyFieldMatrices(ff2m, xMatrix, yMatrix)
     val hMatrix = multiplyFieldMatrices(ff2m, xyMatrix, zMatrix)
-
 
     var hBinMatrix = mk.zeros<Long>(1, 1)
     for (row in 0 until t) {
@@ -137,7 +127,8 @@ fun decode(cipher: LongArray, goppaCode: GoppaCode): LongArray {
     val k = goppaCode.gMatrix.size
     val fixedMessage = pattersonAlgorithm(cipher, goppaCode)
     val systemToSolve =
-        mk.ndarray(goppaCode.gMatrix).transpose().append(mk.ndarray(fixedMessage).reshape(fixedMessage.size, 1), 1).toArray()
+        mk.ndarray(goppaCode.gMatrix).transpose().append(mk.ndarray(fixedMessage).reshape(fixedMessage.size, 1), 1)
+            .toArray()
     val (solution, _) = systemToSolve.reducedRowEchelonForm(k)
     return mk.ndarray(solution)[0..<k, k].toLongArray()
 

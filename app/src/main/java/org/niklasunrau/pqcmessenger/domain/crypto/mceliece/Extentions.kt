@@ -8,11 +8,9 @@ import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
 import org.jetbrains.kotlinx.multik.ndarray.data.D2
 import org.jetbrains.kotlinx.multik.ndarray.data.MultiArray
-import org.jetbrains.kotlinx.multik.ndarray.data.NDArray
 import org.jetbrains.kotlinx.multik.ndarray.data.get
 import org.jetbrains.kotlinx.multik.ndarray.data.set
 import org.jetbrains.kotlinx.multik.ndarray.operations.append
-import org.jetbrains.kotlinx.multik.ndarray.operations.map
 import org.jetbrains.kotlinx.multik.ndarray.operations.toArray
 import org.jetbrains.kotlinx.multik.ndarray.operations.toLongArray
 import kotlin.collections.set
@@ -87,22 +85,6 @@ fun <K, V> Map<K, V>.reversed() = HashMap<V, K>().also { newMap ->
     entries.forEach { newMap[it.value] = it.key }
 }
 
-
-fun NDArray<Double, D2>.toGF2Array(): Array<LongArray> {
-    return this.map { Math.floorMod(it.toLong(), 2).toLong() }.toArray()
-}
-
-fun Array<LongArray>.toDoubleNDArray(): NDArray<Double, D2> {
-    return mk.d2arrayIndices(this.size, this[0].size) { i, j -> this[i][j].toDouble() }
-}
-
-fun Array<IntArray>.toLong(): Array<LongArray> {
-    return Array(this.size) { row -> LongArray(this[0].size) { col -> this[row][col].toLong() } }
-}
-
-fun Array<LongArray>.copy() = Array(size) { get(it).clone() }
-
-
 fun Array<LongArray>.toPrettyString(): String {
     var result = ""
     for (row in this) {
@@ -151,7 +133,6 @@ fun Array<LongArray>.reducedRowEchelonForm(nCols: Int? = null): Pair<Array<LongA
     var p = 0
 
     for (j in 0 until numCols) {
-
         var indexes = nonZero(newMatrix[p..<rowCount, j].toLongArray())
         if (indexes.isEmpty()) continue
 
@@ -163,17 +144,19 @@ fun Array<LongArray>.reducedRowEchelonForm(nCols: Int? = null): Pair<Array<LongA
 
         indexes = nonZero(newMatrix[0..<rowCount, j].toLongArray())
         indexes.remove(p)
-        val firstVector = indexes.map { newMatrix[it, j] }
-        val secondVector = newMatrix[p, 0..<colCount]
-        val outer = mk.d2arrayIndices(firstVector.size, secondVector.size) { row, col ->
-            firstVector[row] * secondVector[col]
-        }
+        if (indexes.isNotEmpty()) {
 
-        for ((index, row) in indexes.withIndex()) {
-            for(col in 0 until colCount)
-                newMatrix[row, col] = Math.floorMod(newMatrix[row, col] + outer[index, col], 2).toLong()
-        }
 
+            val firstVector = indexes.map { newMatrix[it, j] }
+            val secondVector = newMatrix[p, 0..<colCount]
+            val outer = mk.d2arrayIndices(firstVector.size, secondVector.size) { row, col ->
+                firstVector[row] * secondVector[col]
+            }
+            for ((index, row) in indexes.withIndex()) {
+                for (col in 0 until colCount)
+                    newMatrix[row, col] = Math.floorMod(newMatrix[row, col] + outer[index, col], 2).toLong()
+            }
+        }
         p++
         if (p == rowCount)
             break

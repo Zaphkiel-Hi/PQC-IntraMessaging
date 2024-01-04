@@ -1,8 +1,7 @@
 package org.niklasunrau.pqcmessenger.domain.crypto.mceliece
 
+import android.util.Log
 import com.google.common.math.IntMath.pow
-import org.jetbrains.kotlinx.multik.api.linalg.inv
-import org.jetbrains.kotlinx.multik.api.mk
 
 data class McElieceSecretKey(
     val shuffleInvMatrix: Array<LongArray>, val permInvMatrix: Array<LongArray>, val goppaCode: GoppaCode
@@ -11,6 +10,18 @@ data class McElieceSecretKey(
 data class McEliecePublicKey(
     var publicMatrix: Array<LongArray>,
 )
+
+fun logging(str: String) {
+    Log.d("MCEL", str)
+}
+
+fun logging(matrix: Array<LongArray>) {
+    logging(matrix.toPrettyString())
+}
+
+fun logging(any: Any?) {
+    logging(any.toString())
+}
 
 class McEliece(val m: Int, val t: Int) {
     val n = pow(2, m)
@@ -25,14 +36,15 @@ class McEliece(val m: Int, val t: Int) {
         val sgMatrix = multiplyBinaryMatrices(shuffleMatrix, goppaCode.gMatrix)
         val publicMatrix = multiplyBinaryMatrices(sgMatrix, permMatrix)
 
-        val shuffleInvMatrix = mk.linalg.inv(shuffleMatrix.toDoubleNDArray()).toGF2Array()
-        val permInvMatrix = mk.linalg.inv(permMatrix.toDoubleNDArray()).toGF2Array()
-
+        val shuffleInvMatrix = inverse(shuffleMatrix)
+        val permInvMatrix = inverse(permMatrix)
 
         return Pair(
-            McElieceSecretKey(shuffleInvMatrix, permInvMatrix, goppaCode), McEliecePublicKey(publicMatrix)
+            McElieceSecretKey(shuffleInvMatrix, permInvMatrix, goppaCode),
+            McEliecePublicKey(publicMatrix)
         )
     }
+
 
     fun encrypt(message: LongArray, publicKey: McEliecePublicKey): LongArray {
         val codeword = multiplyBinaryMatrices(message, publicKey.publicMatrix)
