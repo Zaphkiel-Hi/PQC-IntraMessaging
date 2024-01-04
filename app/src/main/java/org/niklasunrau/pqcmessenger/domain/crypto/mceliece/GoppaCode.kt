@@ -6,48 +6,41 @@ import cc.redberry.rings.Rings.GF
 import cc.redberry.rings.linear.LinearSolver
 import cc.redberry.rings.poly.FiniteField
 import cc.redberry.rings.poly.univar.IrreduciblePolynomials
-import cc.redberry.rings.poly.univar.UnivariateFactorization.FactorInGF
-import org.apache.commons.math3.random.MersenneTwister
+import cc.redberry.rings.poly.univar.UnivariateFactorization
+import org.apache.commons.math3.random.Well19937c
 import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
 import org.jetbrains.kotlinx.multik.api.zeros
+import org.jetbrains.kotlinx.multik.ndarray.data.get
 import org.jetbrains.kotlinx.multik.ndarray.operations.append
 import org.jetbrains.kotlinx.multik.ndarray.operations.toArray
+import org.jetbrains.kotlinx.multik.ndarray.operations.toLongArray
 import kotlin.streams.toList
-import cc.redberry.rings.poly.univar.UnivariatePolynomial as Polynomial
-import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as FieldElement
+import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
+import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
 
 data class GoppaCode(
     val gMatrix: Array<LongArray>,
-    val ff2m: FiniteField<FieldElement>,
-    val support: List<FieldElement>,
-    val gPoly: Polynomial<FieldElement>,
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as GoppaCode
-
-        if (!gMatrix.contentDeepEquals(other.gMatrix)) return false
-        if (ff2m != other.ff2m) return false
-        if (support != other.support) return false
-        return gPoly == other.gPoly
-    }
-
-    override fun hashCode(): Int {
-        var result = gMatrix.contentDeepHashCode()
-        result = 31 * result + ff2m.hashCode()
-        result = 31 * result + support.hashCode()
-        result = 31 * result + gPoly.hashCode()
-        return result
-    }
-}
+    val ff2m: FiniteField<Element>,
+    val support: List<Element>,
+    val gPoly: Poly<Element>,
+)
 
 fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
     val ff2m = GF(2, m)
+//    val ff2m = FiniteField(UnivariatePolynomialZ64.create(1, 1, 0, 0, 1).modulus(2))
+    val powerToPoly = generatePowerLUT(ff2m)
+
     val support = ff2m.iterator().asSequence().toList()
-    val gPoly = IrreduciblePolynomials.randomIrreduciblePolynomial(ff2m, t, MersenneTwister())
+
+    val gPoly = IrreduciblePolynomials.randomIrreduciblePolynomial(ff2m, t, Well19937c())
+//    val gPoly = Poly.create(
+//        ff2m,
+//        powerToPoly[2],
+//        ff2m.zero,
+//        ff2m.zero,
+//        ff2m.one
+//        )
 
     val xMatrix = Array(t) { Array(t) { ff2m.zero } }
     for (row in 0 until t) {
@@ -57,6 +50,7 @@ fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
             }
         }
     }
+
 
     val yMatrix = Array(t) { Array(n) { ff2m.zero } }
     for (row in 0 until t) {
@@ -74,17 +68,14 @@ fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
         }
     }
 
-
     val xyMatrix = multiplyFieldMatrices(ff2m, xMatrix, yMatrix)
     val hMatrix = multiplyFieldMatrices(ff2m, xyMatrix, zMatrix)
-
 
     var hBinMatrix = mk.zeros<Long>(1, 1)
     for (row in 0 until t) {
         var rowMatrix = mk.zeros<Long>(1, 1)
         for (col in 0 until n) {
-            val coeffs = mk.ndarray(listOf(lJustZerosList(hMatrix[row][col].stream().toList(), m)))
-                .transpose()
+            val coeffs = mk.ndarray(listOf(lJustZerosList(hMatrix[row][col].stream().toList(), m))).transpose()
             rowMatrix = if (col == 0) {
                 coeffs
             } else {
@@ -104,11 +95,12 @@ fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
     LinearSolver.rowEchelonForm(
         IntegersZp64(2), lhsArray, rhsArray, true, false
     )
+
     return GoppaCode(nullspace(lhsArray), ff2m, support, gPoly)
 }
 
 private fun pattersonAlgorithm(cipher: LongArray, goppaCode: GoppaCode): LongArray {
-    val inversePolys = mutableListOf<Polynomial<FieldElement>>()
+    val inversePolys = mutableListOf<Poly<Element>>()
     val ff2m = goppaCode.ff2m
     val gPoly = goppaCode.gPoly
 
@@ -117,47 +109,60 @@ private fun pattersonAlgorithm(cipher: LongArray, goppaCode: GoppaCode): LongArr
         if (cipher[i] == 1L) {
             inversePolys.add(
                 inverseModPoly(
-                    Polynomial.create(
-                        ff2m,
-                        goppaCode.support[i].negate(),
-                        ff2m.one
+                    Poly.create(
+                        ff2m, goppaCode.support[i].negate(), ff2m.one
                     ), gPoly
+
                 )
             )
         }
     }
-
-    var syndrome = Polynomial.zero(ff2m)
+    var syndrome = Poly.zero(ff2m)
     for (poly in inversePolys) {
-        syndrome = syndrome.add(poly)
+        syndrome += poly
     }
 
     val syndromeInverse = inverseModPoly(syndrome, gPoly)
-    val s = sqrtModPoly(syndromeInverse.add(identity(ff2m)), gPoly)
+    val s = sqrtModPoly(syndromeInverse - ff2m.identity(), gPoly)
 
     val (alpha, beta) = latticeBasisReduction(s, gPoly)
 
-    val sigma = alpha.multiply(alpha).add(identity(ff2m).multiply(beta.multiply(beta)))
-    val errorLocations = FactorInGF(sigma)
-    //TODO(find factors)
 
-    Log.d("McEliece", sigma.isOverFiniteField.toString())
-    Log.d("McEliece", sigma.ring.toString())
+    val sigma = (alpha * alpha) + (ff2m.identity() * (beta * beta))
+    val factors = UnivariateFactorization.FactorInGF(sigma).factors
 
-
-//    for (loc in errorLocations) {
-//        unshuffledCipher[loc] = (unshuffledCipher[loc] + 1) % 2
-//    }
+    for (factor in factors) {
+        val loc = factor.cc().toBinary().toInt(2)
+        cipher[loc] = (cipher[loc] + 1) % 2
+    }
 
     return cipher
 
 
 }
 
-fun decode(cipher: LongArray, goppaCode: GoppaCode): Array<LongArray> {
+fun logging(str: String) {
+    Log.d("MCEL", str)
+}
+
+fun logging(str: Any) {
+    Log.d("MCEL", str.toString())
+}
+
+fun decode(cipher: LongArray, goppaCode: GoppaCode): LongArray {
     val k = goppaCode.gMatrix.size
     val fixedMessage = pattersonAlgorithm(cipher, goppaCode)
-    //TODO(finish this)
-    return Array(1) { fixedMessage }
+    val systemToSolve =
+        mk.ndarray(goppaCode.gMatrix).transpose().append(mk.ndarray(fixedMessage).reshape(fixedMessage.size, 1), 1)
+    val n = systemToSolve.shape[0]
+    val rhsArray = LongArray(n) { 0L }
+
+
+    LinearSolver.reducedRowEchelonForm(
+        IntegersZp64(2), systemToSolve.toArray(), rhsArray
+    )
+
+    return systemToSolve[n-k..<n, k].toLongArray()
+
 }
 

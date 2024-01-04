@@ -31,14 +31,15 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUIState())
     val uiState = _uiState.asStateFlow()
 
+
+
     fun generate() {
         val m = 4
-        val t = 2
+        val t = 3
         val mcEliece = McEliece(m, t)
         val (sk, pk) = mcEliece.generateKeyPair()
         val message = LongArray(mcEliece.k) { 1 }
         val cipher = mcEliece.encrypt(message, pk)
-        Log.d("McEliece", cipher.contentToString())
         val decodedMessage = mcEliece.decrypt(cipher, sk)
         Log.d("McEliece", decodedMessage.contentToString())
 
