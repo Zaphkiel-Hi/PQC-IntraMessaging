@@ -25,8 +25,8 @@ class McEliece(val m: Int, val t: Int) {
         val sgMatrix = multiplyBinaryMatrices(shuffleMatrix, goppaCode.gMatrix)
         val publicMatrix = multiplyBinaryMatrices(sgMatrix, permMatrix)
 
-        val shuffleInvMatrix = mk.linalg.inv(shuffleMatrix.toDoubleNDArray()).toLongArray()
-        val permInvMatrix = mk.linalg.inv(permMatrix.toDoubleNDArray()).toLongArray()
+        val shuffleInvMatrix = mk.linalg.inv(shuffleMatrix.toDoubleNDArray()).toGF2Array()
+        val permInvMatrix = mk.linalg.inv(permMatrix.toDoubleNDArray()).toGF2Array()
 
 
         return Pair(
@@ -38,6 +38,7 @@ class McEliece(val m: Int, val t: Int) {
         val codeword = multiplyBinaryMatrices(message, publicKey.publicMatrix)
 
         val errorLocations = (0..<n).shuffled().slice(0..<t)
+
         for (loc in errorLocations) {
             codeword[loc] = (codeword[loc] + 1) % 2
         }
@@ -48,9 +49,7 @@ class McEliece(val m: Int, val t: Int) {
     fun decrypt(cipher: LongArray, secretKey: McElieceSecretKey): LongArray {
 
         val noPermCipher = multiplyBinaryMatrices(cipher, secretKey.permInvMatrix)
-
         val decodedCipher = decode(noPermCipher, secretKey.goppaCode)
-
         return multiplyBinaryMatrices(decodedCipher, secretKey.shuffleInvMatrix)
     }
 

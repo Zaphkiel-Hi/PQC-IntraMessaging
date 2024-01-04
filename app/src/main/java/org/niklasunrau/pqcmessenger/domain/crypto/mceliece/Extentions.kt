@@ -3,11 +3,17 @@ package org.niklasunrau.pqcmessenger.domain.crypto.mceliece
 import cc.redberry.rings.Ring
 import com.google.common.math.IntMath
 import org.jetbrains.kotlinx.multik.api.d2arrayIndices
+import org.jetbrains.kotlinx.multik.api.identity
 import org.jetbrains.kotlinx.multik.api.mk
+import org.jetbrains.kotlinx.multik.api.ndarray
 import org.jetbrains.kotlinx.multik.ndarray.data.D2
+import org.jetbrains.kotlinx.multik.ndarray.data.MultiArray
 import org.jetbrains.kotlinx.multik.ndarray.data.NDArray
+import org.jetbrains.kotlinx.multik.ndarray.data.get
+import org.jetbrains.kotlinx.multik.ndarray.operations.append
 import org.jetbrains.kotlinx.multik.ndarray.operations.map
 import org.jetbrains.kotlinx.multik.ndarray.operations.toArray
+import kotlin.collections.set
 import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
 import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
 
@@ -80,13 +86,20 @@ fun <K, V> Map<K, V>.reversed() = HashMap<V, K>().also { newMap ->
 }
 
 
-fun NDArray<Double, D2>.toLongArray(): Array<LongArray> {
-    return this.map { it.toLong() }.toArray()
+fun NDArray<Double, D2>.toGF2Array(): Array<LongArray> {
+    return this.map { Math.floorMod(it.toLong(), 2).toLong() }.toArray()
 }
 
 fun Array<LongArray>.toDoubleNDArray(): NDArray<Double, D2> {
     return mk.d2arrayIndices(this.size, this[0].size) { i, j -> this[i][j].toDouble() }
 }
+
+fun Array<IntArray>.toLong(): Array<LongArray> {
+    return Array(this.size) { row -> LongArray(this[0].size) { col -> this[row][col].toLong() } }
+}
+
+fun Array<LongArray>.copy() = Array(size) { get(it).clone() }
+
 
 fun Array<LongArray>.toPrettyString(): String {
     var result = ""
@@ -106,7 +119,7 @@ fun Array<Array<Element>>.toPrettyString(ring: Ring<Element>): String {
         result += "[ "
         for (col in this[row].indices) {
             val elem = this[row][col]
-            var str = if (elem.isZero) "0  " else if(elem.isOne) "1  " else elemPrefix + lut[elem].toString()
+            var str = if (elem.isZero) "0  " else if (elem.isOne) "1  " else elemPrefix + lut[elem].toString()
             result += "$str "
         }
 
@@ -114,4 +127,55 @@ fun Array<Array<Element>>.toPrettyString(ring: Ring<Element>): String {
     }
 
     return result
+}
+
+fun MultiArray<Long, D2>.nullspace(): Array<LongArray> {
+    val newMatrix = this.transpose().copy()
+    val (m, n) = newMatrix.shape
+    val identity = mk.identity<Long>(m)
+    val toSolve = newMatrix.append(identity, 1)
+    val (inRREF, p) = toSolve.toArray().reducedRowEchelonForm(n)
+    val nullspace = mk.ndarray(inRREF)[p..<inRREF.size, n..<inRREF[0].size]
+    val (reducedNullspace, _) = nullspace.toArray().reducedRowEchelonForm()
+    return reducedNullspace
+}
+
+fun Array<LongArray>.reducedRowEchelonForm(nCols: Int? = null): Pair<Array<LongArray>, Int> {
+    var lead = 0
+    val rowCount = this.size
+    val colCount = this[0].size
+    val numCols = nCols ?: colCount
+
+    val newMatrix = this.copy()
+
+    for (j in 0 until numCols) {
+        var i = j
+        while (newMatrix[i][lead] == 0L) {
+            i++
+            if (rowCount == i) {
+                i = j
+                lead++
+            }
+        }
+        val temp = newMatrix[i]
+        newMatrix[i] = newMatrix[j]
+        newMatrix[j] = temp
+//
+//        if (newMatrix[r][lead] != 0L) {
+//            val div = newMatrix[r][lead]
+//            for (j in 0 until colCount) newMatrix[r][j] /= div
+//        }
+
+        for (k in 0 until rowCount) {
+            if (k != j) {
+                val mult = newMatrix[k][lead]
+                for (l in 0 until colCount)
+                    newMatrix[k][l] = Math.floorMod(newMatrix[k][l] - newMatrix[j][l] * mult, 2).toLong()
+            }
+        }
+
+        lead++
+        if (lead == rowCount) break
+    }
+    return newMatrix to lead
 }

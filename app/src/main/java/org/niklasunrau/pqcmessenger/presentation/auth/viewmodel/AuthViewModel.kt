@@ -40,6 +40,7 @@ class AuthViewModel @Inject constructor(
         val (sk, pk) = mcEliece.generateKeyPair()
         val message = LongArray(mcEliece.k) { 1 }
         val cipher = mcEliece.encrypt(message, pk)
+
         val decodedMessage = mcEliece.decrypt(cipher, sk)
         Log.d("McEliece", decodedMessage.contentToString())
 

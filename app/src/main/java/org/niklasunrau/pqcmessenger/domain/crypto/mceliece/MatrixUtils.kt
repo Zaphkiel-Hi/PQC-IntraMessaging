@@ -28,7 +28,7 @@ fun multiplyBinaryMatrices(
     for (i in 0 until row1) {
         for (j in 0 until col2) {
             for (k in 0 until col1) {
-                product[i][j] = (product[i][j] + matrix1[i][k] * matrix2[k][j]) % 2
+                product[i][j] = Math.floorMod(product[i][j] + matrix1[i][k] * matrix2[k][j], 2).toLong()
             }
         }
     }
@@ -36,7 +36,9 @@ fun multiplyBinaryMatrices(
 }
 
 fun multiplyFieldMatrices(
-    finiteField: FiniteField<UnivariatePolynomialZp64>, matrix1: Array<Array<UnivariatePolynomialZp64>>, matrix2: Array<Array<UnivariatePolynomialZp64>>
+    finiteField: FiniteField<UnivariatePolynomialZp64>,
+    matrix1: Array<Array<UnivariatePolynomialZp64>>,
+    matrix2: Array<Array<UnivariatePolynomialZp64>>
 ): Array<Array<UnivariatePolynomialZp64>> {
     val row1 = matrix1.size
     val col1 = matrix1[0].size
@@ -66,7 +68,6 @@ fun lJustZerosList(list: List<Long>, length: Int): List<Long> {
 
 fun swapColumns(matrix: Array<LongArray>, a: Int, b: Int) {
     for (i in matrix.indices) {
-        // Swap two numbers
         val temp = matrix[i][a]
         matrix[i][a] = matrix[i][b]
         matrix[i][b] = temp
@@ -128,7 +129,7 @@ private fun detMod2(array: Array<LongArray>): Int {
 
         for (k in (i + 1)..<n) {
             if (matrix[k][i] == 1L) {
-                matrix[i].zip(matrix[k]).forEachIndexed() { index, pair ->
+                matrix[i].zip(matrix[k]).forEachIndexed { index, pair ->
                     matrix[k][index] = (pair.first + pair.second) % 2
                 }
             }
