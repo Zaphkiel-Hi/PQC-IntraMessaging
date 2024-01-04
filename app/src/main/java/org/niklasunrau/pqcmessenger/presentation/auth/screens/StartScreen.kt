@@ -76,10 +76,5 @@ fun StartScreen(
             onClicked = onNavigateToSignUp,
             modifier = Modifier.padding(horizontal = SmallPadding)
         )
-        CustomOutlinedButton(
-            text = "Generate",
-            onClicked = { viewModel.generate() },
-            modifier = Modifier.padding(horizontal = SmallPadding)
-        )
     }
 }

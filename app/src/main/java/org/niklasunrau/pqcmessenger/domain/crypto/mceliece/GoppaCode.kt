@@ -4,6 +4,7 @@ import cc.redberry.rings.Rings.GF
 import cc.redberry.rings.poly.FiniteField
 import cc.redberry.rings.poly.univar.IrreduciblePolynomials
 import cc.redberry.rings.poly.univar.UnivariateFactorization
+import cc.redberry.rings.poly.univar.UnivariatePolynomialZ64
 import org.apache.commons.math3.random.Well19937c
 import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
@@ -21,7 +22,34 @@ data class GoppaCode(
     val ff2m: FiniteField<Element>,
     val support: List<Element>,
     val gPoly: Poly<Element>,
-)
+) {
+    constructor() : this(
+        Array(0) { LongArray(0) },
+        FiniteField(UnivariatePolynomialZ64.create(1).modulus(2)),
+        listOf<Element>(),
+        Poly.create(FiniteField(UnivariatePolynomialZ64.create(1).modulus(2)), Element.zero(2))
+    )
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as GoppaCode
+
+        if (!gMatrix.contentDeepEquals(other.gMatrix)) return false
+        if (ff2m != other.ff2m) return false
+        if (support != other.support) return false
+        return gPoly == other.gPoly
+    }
+
+    override fun hashCode(): Int {
+        var result = gMatrix.contentDeepHashCode()
+        result = 31 * result + ff2m.hashCode()
+        result = 31 * result + support.hashCode()
+        result = 31 * result + gPoly.hashCode()
+        return result
+    }
+}
 
 fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
     val ff2m = GF(2, m)

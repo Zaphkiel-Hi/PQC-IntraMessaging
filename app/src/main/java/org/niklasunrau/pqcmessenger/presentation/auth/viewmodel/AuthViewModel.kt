@@ -1,6 +1,5 @@
 package org.niklasunrau.pqcmessenger.presentation.auth.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -15,7 +14,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.niklasunrau.pqcmessenger.R
 import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece
-import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.toPrettyString
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
@@ -31,30 +29,6 @@ class AuthViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUIState())
     val uiState = _uiState.asStateFlow()
-
-
-
-    fun generate() {
-        val m = 10
-        val t = 17
-        val mcEliece = McEliece(m, t)
-        var test = 0
-        while(true) {
-            val (sk, pk) = mcEliece.generateKeyPair()
-            val message = LongArray(mcEliece.k) { 1 }
-            val cipher = mcEliece.encrypt(message, pk)
-            val decodedMessage = mcEliece.decrypt(cipher, sk)
-            if(decodedMessage.contains(0)) {
-                Log.d("McEliece", sk.shuffleMatrix.toPrettyString())
-                Log.d("McEliece", sk.shuffleInvMatrix.toPrettyString())
-                break
-            }
-                Log.d("McEliece", test.toString())
-            test++
-        }
-
-
-    }
 
 
     fun onUsernameChange(username: String) {
@@ -207,11 +181,15 @@ class AuthViewModel @Inject constructor(
 
 
                     is Status.Success -> {
+
+                        val (mcElieceSK, mcEliecePK) = McEliece.generateKeyPair()
                         userRepository.createUser(
                             User(
                                 id = authRepository.currentUserId,
                                 email = email,
-                                username = username
+                                username = username,
+                                mcEliecePublicKey = mcEliecePK,
+                                mcElieceSecretKey = mcElieceSK
                             )
                         )
                         _uiState.update { it.copy(isLoading = false) }
