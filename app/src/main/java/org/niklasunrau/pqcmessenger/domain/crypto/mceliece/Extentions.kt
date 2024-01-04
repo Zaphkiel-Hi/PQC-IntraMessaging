@@ -10,9 +10,11 @@ import org.jetbrains.kotlinx.multik.ndarray.data.D2
 import org.jetbrains.kotlinx.multik.ndarray.data.MultiArray
 import org.jetbrains.kotlinx.multik.ndarray.data.NDArray
 import org.jetbrains.kotlinx.multik.ndarray.data.get
+import org.jetbrains.kotlinx.multik.ndarray.data.set
 import org.jetbrains.kotlinx.multik.ndarray.operations.append
 import org.jetbrains.kotlinx.multik.ndarray.operations.map
 import org.jetbrains.kotlinx.multik.ndarray.operations.toArray
+import org.jetbrains.kotlinx.multik.ndarray.operations.toLongArray
 import kotlin.collections.set
 import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
 import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
@@ -141,41 +143,40 @@ fun MultiArray<Long, D2>.nullspace(): Array<LongArray> {
 }
 
 fun Array<LongArray>.reducedRowEchelonForm(nCols: Int? = null): Pair<Array<LongArray>, Int> {
-    var lead = 0
     val rowCount = this.size
     val colCount = this[0].size
     val numCols = nCols ?: colCount
 
-    val newMatrix = this.copy()
+    val newMatrix = mk.ndarray(this)
+    var p = 0
 
     for (j in 0 until numCols) {
-        var i = j
-        while (newMatrix[i][lead] == 0L) {
-            i++
-            if (rowCount == i) {
-                i = j
-                lead++
-            }
-        }
-        val temp = newMatrix[i]
-        newMatrix[i] = newMatrix[j]
-        newMatrix[j] = temp
-//
-//        if (newMatrix[r][lead] != 0L) {
-//            val div = newMatrix[r][lead]
-//            for (j in 0 until colCount) newMatrix[r][j] /= div
-//        }
 
-        for (k in 0 until rowCount) {
-            if (k != j) {
-                val mult = newMatrix[k][lead]
-                for (l in 0 until colCount)
-                    newMatrix[k][l] = Math.floorMod(newMatrix[k][l] - newMatrix[j][l] * mult, 2).toLong()
-            }
+        var indexes = nonZero(newMatrix[p..<rowCount, j].toLongArray())
+        if (indexes.isEmpty()) continue
+
+        val i = p + indexes[0]
+
+        val temp = newMatrix[i].copy()
+        newMatrix[i] = newMatrix[p]
+        newMatrix[p] = temp
+
+        indexes = nonZero(newMatrix[0..<rowCount, j].toLongArray())
+        indexes.remove(p)
+        val firstVector = indexes.map { newMatrix[it, j] }
+        val secondVector = newMatrix[p, 0..<colCount]
+        val outer = mk.d2arrayIndices(firstVector.size, secondVector.size) { row, col ->
+            firstVector[row] * secondVector[col]
         }
 
-        lead++
-        if (lead == rowCount) break
+        for ((index, row) in indexes.withIndex()) {
+            for(col in 0 until colCount)
+                newMatrix[row, col] = Math.floorMod(newMatrix[row, col] + outer[index, col], 2).toLong()
+        }
+
+        p++
+        if (p == rowCount)
+            break
     }
-    return newMatrix to lead
+    return newMatrix.toArray() to p
 }

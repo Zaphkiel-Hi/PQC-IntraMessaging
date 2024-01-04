@@ -137,3 +137,11 @@ private fun detMod2(array: Array<LongArray>): Int {
     }
     return 1
 }
+
+fun nonZero(array: LongArray): MutableList<Int>{
+    val list = mutableListOf<Int>()
+    for((index, elem) in array.withIndex()){
+        if(elem != 0L) list.add(index)
+    }
+    return list
+}
