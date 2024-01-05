@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
     id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -103,5 +104,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:multik-core:0.2.2")
     implementation("org.jetbrains.kotlinx:multik-kotlin:0.2.2")
+
+    implementation("org.jetbrains.kotlin:kotlinx.serialization-json:1.6.2")
 }
 

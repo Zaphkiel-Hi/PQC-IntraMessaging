@@ -183,6 +183,7 @@ class AuthViewModel @Inject constructor(
                     is Status.Success -> {
 
                         val (mcElieceSK, mcEliecePK) = McEliece.generateKeyPair()
+//                        mcElieceSK.goppaCode.ff2m.
                         userRepository.createUser(
                             User(
                                 id = authRepository.currentUserId,
