@@ -1,5 +1,6 @@
 package org.niklasunrau.pqcmessenger.presentation.auth.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -12,8 +13,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.niklasunrau.pqcmessenger.R
 import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece
+import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McElieceSecretKey
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
@@ -30,7 +34,21 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUIState())
     val uiState = _uiState.asStateFlow()
 
+//    val format = Json { prettyPrint = true }
 
+    fun logging(string: String){
+        Log.d("TEST", string)
+    }
+
+    private val json = Json { prettyPrint = true }
+
+    fun test(){
+        val (sk, pk) = McEliece.generateKeyPair()
+        val supString = json.encodeToString(sk)
+        val sup = json.decodeFromString<McElieceSecretKey>(supString)
+//        val polString = format.encodeToString(sk.goppaCode.gPoly)
+//        logging(polString)
+    }
     fun onUsernameChange(username: String) {
         _uiState.update { it.copy(username = username, usernameError = UiText.DynamicString("")) }
 

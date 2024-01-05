@@ -13,7 +13,6 @@ import org.jetbrains.kotlinx.multik.ndarray.data.set
 import org.jetbrains.kotlinx.multik.ndarray.operations.append
 import org.jetbrains.kotlinx.multik.ndarray.operations.toArray
 import org.jetbrains.kotlinx.multik.ndarray.operations.toLongArray
-import kotlin.collections.set
 import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
 import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
 
@@ -44,73 +43,20 @@ inline fun <reified T> Poly<T>.split(): Pair<Poly<T>, Poly<T>> {
 }
 
 fun Element.toBinary(): String {
+    return this.stream().toArray().joinToString(separator = "")
+}
+
+fun String.toLongArray(): LongArray{
+    return this.map { it.toString().toLong() }.toLongArray()
+}
+
+fun Element.toInt(): Int {
     var bin = ""
     for (i in degree() downTo 0) bin += get(i)
-    return bin
+    return bin.toInt(2)
 }
-
-fun Poly<Element>.toStringWithPower(): String {
-    val elemPrefix = "a^"
-    val varString = "x"
-    val invLut = generatePowerLUT(this.ring)
-    val lut = invLut.reversed()
-    if (isConstant) return elemPrefix + lut[cc()].toString()
-
-    var result = ""
-    for ((index, coeff) in this.dataReferenceUnsafe.withIndex()) {
-
-        if (ring.isZero(coeff)) continue
-
-        val cfString = if (!ring.isOne(coeff)) elemPrefix + lut[coeff].toString() else ""
-
-        if (result.isNotEmpty()) result += " + "
-        result += (cfString)
-
-        if (index == 0) continue
-
-        if (cfString.isNotEmpty()) result += "*"
-
-        result += varString
-
-        if (index > 1) result += "^$index"
-    }
-    return result
-}
-
 fun <T> Ring<T>.identity(): Poly<T> {
     return Poly.create(this, zero, one)
-}
-
-fun <K, V> Map<K, V>.reversed() = HashMap<V, K>().also { newMap ->
-    entries.forEach { newMap[it.value] = it.key }
-}
-
-fun Array<LongArray>.toPrettyString(): String {
-    var result = ""
-    for (row in this) {
-        result += row.contentToString() + "\n"
-    }
-    return result
-
-}
-
-fun Array<Array<Element>>.toPrettyString(ring: Ring<Element>): String {
-    val elemPrefix = "a^"
-    val invLut = generatePowerLUT(ring)
-    val lut = invLut.reversed()
-    var result = ""
-    for (row in this.indices) {
-        result += "[ "
-        for (col in this[row].indices) {
-            val elem = this[row][col]
-            var str = if (elem.isZero) "0  " else if (elem.isOne) "1  " else elemPrefix + lut[elem].toString()
-            result += "$str "
-        }
-
-        result += "]\n"
-    }
-
-    return result
 }
 
 fun MultiArray<Long, D2>.nullspace(): Array<LongArray> {

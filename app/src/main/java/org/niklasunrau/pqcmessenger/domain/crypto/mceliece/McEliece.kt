@@ -1,11 +1,21 @@
 package org.niklasunrau.pqcmessenger.domain.crypto.mceliece
 
+import cc.redberry.rings.Rings.GF
+import cc.redberry.rings.Rings.UnivariateRing
+import cc.redberry.rings.poly.FiniteField
+import cc.redberry.rings.poly.UnivariateRing
 import com.google.common.math.IntMath.pow
+import kotlinx.serialization.Serializable
+import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
+import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
 
+@Serializable
 data class McElieceSecretKey(
-    val shuffleInvMatrix: Array<LongArray>, val permInvMatrix: Array<LongArray>, val goppaCode: GoppaCode
-){
-    constructor(): this(Array(0) { LongArray(0) }, Array(0) { LongArray(0) }, GoppaCode())
+    @Serializable(MatrixSerializer::class) val shuffleInvMatrix: Array<LongArray>,
+    @Serializable(PermMatrixSerializer::class) val permInvMatrix: Array<LongArray>,
+    val goppaCode: GoppaCode
+) {
+    constructor() : this(Array(0) { LongArray(0) }, Array(0) { LongArray(0) }, GoppaCode())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -26,8 +36,9 @@ data class McElieceSecretKey(
     }
 }
 
+@Serializable
 data class McEliecePublicKey(
-    var publicMatrix: Array<LongArray>,
+    @Serializable(MatrixSerializer::class) var publicMatrix: Array<LongArray>,
 ) {
     constructor() : this(Array(0) { LongArray(0) })
 
@@ -46,8 +57,11 @@ data class McEliecePublicKey(
 }
 
 object McEliece {
-    private const val m = 8
+    const val m = 8
     private const val t = 16
+    val ff2m: FiniteField<Element> = GF(2, m)
+    val coeffRing: UnivariateRing<Poly<Element>> = UnivariateRing(ff2m)
+
     private val n = pow(2, m)
     private val k = n - t * m
 

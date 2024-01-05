@@ -1,10 +1,9 @@
 package org.niklasunrau.pqcmessenger.domain.crypto.mceliece
 
 import cc.redberry.rings.Rings.GF
-import cc.redberry.rings.poly.FiniteField
 import cc.redberry.rings.poly.univar.IrreduciblePolynomials
 import cc.redberry.rings.poly.univar.UnivariateFactorization
-import cc.redberry.rings.poly.univar.UnivariatePolynomialZ64
+import kotlinx.serialization.Serializable
 import org.apache.commons.math3.random.Well19937c
 import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
@@ -13,21 +12,22 @@ import org.jetbrains.kotlinx.multik.ndarray.data.get
 import org.jetbrains.kotlinx.multik.ndarray.operations.append
 import org.jetbrains.kotlinx.multik.ndarray.operations.toArray
 import org.jetbrains.kotlinx.multik.ndarray.operations.toLongArray
+import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece.ff2m
 import kotlin.streams.toList
 import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
 import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
 
+
+@Serializable
 data class GoppaCode(
-    val gMatrix: Array<LongArray>,
-    val ff2m: FiniteField<Element>,
-    val support: List<Element>,
-    val gPoly: Poly<Element>,
+    @Serializable(MatrixSerializer::class) val gMatrix: Array<LongArray>,
+    val support: List<@Serializable(ElementSerializer::class) Element>,
+    val gPoly: @Serializable(PolySerializer::class) Poly<@Serializable(ElementSerializer::class) Element>,
 ) {
     constructor() : this(
         Array(0) { LongArray(0) },
-        FiniteField(UnivariatePolynomialZ64.create(1).modulus(2)),
         listOf<Element>(),
-        Poly.create(FiniteField(UnivariatePolynomialZ64.create(1).modulus(2)), Element.zero(2))
+        Poly.create(GF(2, 1), Element.zero(2))
     )
 
     override fun equals(other: Any?): Boolean {
@@ -37,14 +37,12 @@ data class GoppaCode(
         other as GoppaCode
 
         if (!gMatrix.contentDeepEquals(other.gMatrix)) return false
-        if (ff2m != other.ff2m) return false
         if (support != other.support) return false
         return gPoly == other.gPoly
     }
 
     override fun hashCode(): Int {
         var result = gMatrix.contentDeepHashCode()
-        result = 31 * result + ff2m.hashCode()
         result = 31 * result + support.hashCode()
         result = 31 * result + gPoly.hashCode()
         return result
@@ -52,8 +50,7 @@ data class GoppaCode(
 }
 
 fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
-    val ff2m = GF(2, m)
-    val support = ff2m.iterator().asSequence().toList()
+    val support = ff2m.iterator().asSequence().toList().shuffled()
     val gPoly = IrreduciblePolynomials.randomIrreduciblePolynomial(ff2m, t, Well19937c())
 
     val xMatrix = Array(t) { Array(t) { ff2m.zero } }
@@ -106,12 +103,12 @@ fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
 
     val gMatrix = hBinMatrix.nullspace()
 
-    return GoppaCode(gMatrix, ff2m, support, gPoly)
+    return GoppaCode(gMatrix, support, gPoly)
 }
 
 private fun pattersonAlgorithm(cipher: LongArray, goppaCode: GoppaCode): LongArray {
     val inversePolys = mutableListOf<Poly<Element>>()
-    val ff2m = goppaCode.ff2m
+    val ff2m = GF(2, McEliece.m)
     val gPoly = goppaCode.gPoly
 
 
@@ -142,7 +139,7 @@ private fun pattersonAlgorithm(cipher: LongArray, goppaCode: GoppaCode): LongArr
     val factors = UnivariateFactorization.FactorInGF(sigma).factors
 
     for (factor in factors) {
-        val loc = factor.cc().toBinary().toInt(2)
+        val loc = factor.cc().toInt()
         cipher[loc] = (cipher[loc] + 1) % 2
     }
 
