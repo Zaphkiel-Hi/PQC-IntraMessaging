@@ -42,6 +42,7 @@ class MainViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
+
         viewModelScope.launch {
             val currentUser = userRepository.getUserById(authRepository.currentUserId)!!
             _uiState.update { it.copy(currentUser = currentUser) }

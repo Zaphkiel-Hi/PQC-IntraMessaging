@@ -27,7 +27,7 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun createUser(user: User) {
         Log.d("API", "createUser Call")
-        firestore.collection(USER_COLLECTION).add(user)
+        firestore.collection(USER_COLLECTION).document(user.id).set(user)
     }
 
     override suspend fun isUsernameInUse(username: String): Boolean {

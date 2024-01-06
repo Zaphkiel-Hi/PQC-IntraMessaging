@@ -13,8 +13,8 @@
         android:supportsRtl="true"
         android:theme="@style/App.Starting.Theme"
         >
+<!--            android:windowSoftInputMode="adjustResize"-->
         <activity
-            android:windowSoftInputMode="adjustResize"
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/App.Starting.Theme">

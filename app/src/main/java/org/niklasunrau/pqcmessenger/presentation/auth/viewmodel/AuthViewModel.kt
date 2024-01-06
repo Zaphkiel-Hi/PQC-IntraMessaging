@@ -16,19 +16,19 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.niklasunrau.pqcmessenger.R
+import org.niklasunrau.pqcmessenger.domain.crypto.aes.AES
 import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece
-import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McElieceSecretKey
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
+import org.niklasunrau.pqcmessenger.domain.util.Algorithm
 import org.niklasunrau.pqcmessenger.domain.util.Status
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val userRepository: UserRepository
+    private val authRepository: AuthRepository, private val userRepository: UserRepository
 
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUIState())
@@ -36,19 +36,15 @@ class AuthViewModel @Inject constructor(
 
 //    val format = Json { prettyPrint = true }
 
-    fun logging(string: String){
+    fun logging(string: String) {
         Log.d("TEST", string)
     }
 
     private val json = Json { prettyPrint = true }
 
-    fun test(){
-        val (sk, pk) = McEliece.generateKeyPair()
-        val supString = json.encodeToString(sk)
-        val sup = json.decodeFromString<McElieceSecretKey>(supString)
-//        val polString = format.encodeToString(sk.goppaCode.gPoly)
-//        logging(polString)
+    fun test() {
     }
+
     fun onUsernameChange(username: String) {
         _uiState.update { it.copy(username = username, usernameError = UiText.DynamicString("")) }
 
@@ -65,8 +61,7 @@ class AuthViewModel @Inject constructor(
     fun onConfirmPasswordChange(confirmPassword: String) {
         _uiState.update {
             it.copy(
-                confirmPassword = confirmPassword,
-                confirmPasswordError = UiText.DynamicString("")
+                confirmPassword = confirmPassword, confirmPasswordError = UiText.DynamicString("")
             )
         }
     }
@@ -93,13 +88,12 @@ class AuthViewModel @Inject constructor(
                     is Status.Error -> {
                         _uiState.update { it.copy(isLoading = false) }
                         when (result.error) {
-                            is FirebaseAuthInvalidCredentialsException ->
-                                _uiState.update { currentState ->
-                                    currentState.copy(
-                                        usernameError = UiText.StringResource(R.string.invalid_credentials),
-                                        passwordError = UiText.StringResource(R.string.invalid_credentials)
-                                    )
-                                }
+                            is FirebaseAuthInvalidCredentialsException -> _uiState.update { currentState ->
+                                currentState.copy(
+                                    usernameError = UiText.StringResource(R.string.invalid_credentials),
+                                    passwordError = UiText.StringResource(R.string.invalid_credentials)
+                                )
+                            }
                         }
                     }
 
@@ -153,8 +147,7 @@ class AuthViewModel @Inject constructor(
         if (password != confirmPassword) {
             _uiState.update { currentState ->
                 currentState.copy(
-                    confirmPasswordError = UiText.StringResource(R.string.password_not_identical),
-                    isLoading = false
+                    confirmPasswordError = UiText.StringResource(R.string.password_not_identical), isLoading = false
                 )
             }
             return
@@ -164,8 +157,7 @@ class AuthViewModel @Inject constructor(
             if (userRepository.isUsernameInUse(username)) {
                 _uiState.update { currentState ->
                     currentState.copy(
-                        usernameError = UiText.StringResource(R.string.username_in_use),
-                        isLoading = false
+                        usernameError = UiText.StringResource(R.string.username_in_use), isLoading = false
                     )
                 }
                 this.cancel()
@@ -199,16 +191,21 @@ class AuthViewModel @Inject constructor(
 
 
                     is Status.Success -> {
-
+                        //TODO change to not be hardcoded
                         val (mcElieceSK, mcEliecePK) = McEliece.generateKeyPair()
-//                        mcElieceSK.goppaCode.ff2m.
+
+                        val strMcElieceSK = Json.encodeToString(mcElieceSK)
+                        val strMcEliecePK = Json.encodeToString(mcEliecePK)
+
+                        val encryptedMcElieceSK = AES.encrypt(strMcElieceSK, password)
+
                         userRepository.createUser(
                             User(
                                 id = authRepository.currentUserId,
                                 email = email,
                                 username = username,
-                                mcEliecePublicKey = mcEliecePK,
-                                mcElieceSecretKey = mcElieceSK
+                                encryptedSecretKeys = mapOf(Algorithm.MCELIECE.name to encryptedMcElieceSK),
+                                publicKeys = mapOf(Algorithm.MCELIECE.name to strMcEliecePK)
                             )
                         )
                         _uiState.update { it.copy(isLoading = false) }
