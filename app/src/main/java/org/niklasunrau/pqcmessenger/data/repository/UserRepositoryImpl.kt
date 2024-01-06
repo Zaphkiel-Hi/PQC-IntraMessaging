@@ -15,13 +15,15 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun getUserById(uid: String): User? {
         Log.d("API", "getUserById Call")
         val result = firestore.collection(USER_COLLECTION).document(uid).get().await()
-        return if(result.exists()) result.toObject<User>() else null
+        return if (result.exists()) result.toObject<User>() else null
 
     }
+
     override suspend fun getUserByUsername(username: String): User? {
         Log.d("API", "getUserByUsername Call")
         val result = firestore.collection(USER_COLLECTION).whereEqualTo(USERNAME_FIELD, username).get().await()
-        return if(result.isEmpty) null else result.toObjects(User::class.java)[0]
+        return if (result.isEmpty) null else result.toObjects(User::class.java)[0]
+
     }
 
 

@@ -5,58 +5,13 @@ import cc.redberry.rings.Rings.UnivariateRing
 import cc.redberry.rings.poly.FiniteField
 import cc.redberry.rings.poly.UnivariateRing
 import com.google.common.math.IntMath.pow
-import kotlinx.serialization.Serializable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricAlgorithm
 import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
 import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
 
-@Serializable
-data class McElieceSecretKey(
-    @Serializable(MatrixSerializer::class) val shuffleInvMatrix: Array<LongArray>,
-    @Serializable(PermMatrixSerializer::class) val permInvMatrix: Array<LongArray>,
-    val goppaCode: GoppaCode
-) {
-    constructor() : this(Array(0) { LongArray(0) }, Array(0) { LongArray(0) }, GoppaCode())
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as McElieceSecretKey
-
-        if (!shuffleInvMatrix.contentDeepEquals(other.shuffleInvMatrix)) return false
-        if (!permInvMatrix.contentDeepEquals(other.permInvMatrix)) return false
-        return goppaCode == other.goppaCode
-    }
-
-    override fun hashCode(): Int {
-        var result = shuffleInvMatrix.contentDeepHashCode()
-        result = 31 * result + permInvMatrix.contentDeepHashCode()
-        result = 31 * result + goppaCode.hashCode()
-        return result
-    }
-}
-
-@Serializable
-data class McEliecePublicKey(
-    @Serializable(MatrixSerializer::class) var publicMatrix: Array<LongArray>,
-) {
-    constructor() : this(Array(0) { LongArray(0) })
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as McEliecePublicKey
-
-        return publicMatrix.contentDeepEquals(other.publicMatrix)
-    }
-
-    override fun hashCode(): Int {
-        return publicMatrix.contentDeepHashCode()
-    }
-}
-
-object McEliece {
+object McEliece : AsymmetricAlgorithm<McElieceSecretKey, McEliecePublicKey>() {
     const val m = 8
     private const val t = 16
     val ff2m: FiniteField<Element> = GF(2, m)
@@ -65,7 +20,7 @@ object McEliece {
     private val n = pow(2, m)
     private val k = n - t * m
 
-    fun generateKeyPair(): Pair<McElieceSecretKey, McEliecePublicKey> {
+    override suspend fun generateKeyPair(): Pair<McElieceSecretKey, McEliecePublicKey> = withContext(Dispatchers.Default) {
         val goppaCode = generateCode(n, m, t)
         val shuffleMatrix = generateShuffleMatrix(k)
         val permMatrix = generatePermMatrix(n)
@@ -77,15 +32,15 @@ object McEliece {
         val shuffleInvMatrix = inverse(shuffleMatrix)
         val permInvMatrix = inverse(permMatrix)
 
-        return Pair(
-            McElieceSecretKey(shuffleInvMatrix, permInvMatrix, goppaCode),
-            McEliecePublicKey(publicMatrix)
+
+        return@withContext Pair(
+            McElieceSecretKey(shuffleInvMatrix, permInvMatrix, goppaCode), McEliecePublicKey(publicMatrix)
         )
     }
 
 
-    fun encrypt(message: LongArray, publicKey: McEliecePublicKey): LongArray {
-        val codeword = multiplyBinaryMatrices(message, publicKey.publicMatrix)
+    override fun encrypt(message: String, publicKey: McEliecePublicKey): String {
+        val codeword = multiplyBinaryMatrices(message.toLongArray(), publicKey.publicMatrix)
 
         val errorLocations = (0..<n).shuffled().slice(0..<t)
 
@@ -93,14 +48,14 @@ object McEliece {
             codeword[loc] = (codeword[loc] + 1) % 2
         }
 
-        return codeword
+        return codeword.joinToString("")
     }
 
-    fun decrypt(cipher: LongArray, secretKey: McElieceSecretKey): LongArray {
+    override fun decrypt(cipher: String, secretKey: McElieceSecretKey): String {
 
-        val noPermCipher = multiplyBinaryMatrices(cipher, secretKey.permInvMatrix)
+        val noPermCipher = multiplyBinaryMatrices(cipher.toLongArray(), secretKey.permInvMatrix)
         val decodedCipher = decode(noPermCipher, secretKey.goppaCode)
-        return multiplyBinaryMatrices(decodedCipher, secretKey.shuffleInvMatrix)
+        return multiplyBinaryMatrices(decodedCipher, secretKey.shuffleInvMatrix).joinToString("")
     }
 
 }

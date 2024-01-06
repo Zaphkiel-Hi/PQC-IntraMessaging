@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
                                 SignUpScreen(
                                     onNavigateToStart = { navigateTo(Route.Start) },
                                     onNavigateToLogIn = { navigateTo(Route.LogIn) },
-                                    onNavigateToMain = { navigateTo(Route.Main, true) },
+                                    onNavigateToMain = { password -> navigateTo(Route.Main, true) },
                                     viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
                                 )
                             }

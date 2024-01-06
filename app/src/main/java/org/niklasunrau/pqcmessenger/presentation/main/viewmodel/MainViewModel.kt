@@ -45,6 +45,7 @@ class MainViewModel @Inject constructor(
 
         viewModelScope.launch {
             val currentUser = userRepository.getUserById(authRepository.currentUserId)!!
+            val encryptedKeys = currentUser.encryptedSecretKeys
             _uiState.update { it.copy(currentUser = currentUser) }
 
             val chats = chatRepository.getUserChats(currentUser.id)

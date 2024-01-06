@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,15 +35,23 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUIState())
     val uiState = _uiState.asStateFlow()
 
-//    val format = Json { prettyPrint = true }
-
     fun logging(string: String) {
         Log.d("TEST", string)
     }
 
-    private val json = Json { prettyPrint = true }
-
     fun test() {
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            val (mcElieceSK, mcEliecePK) = viewModelScope.async() {
+                McEliece.generateKeyPair()
+            }.await()
+            val strMcElieceSK = Json.encodeToString(mcElieceSK)
+            val strMcEliecePK = Json.encodeToString(mcEliecePK)
+
+            val encryptedMcElieceSK = AES.encrypt(strMcElieceSK, "TESTTT")
+        }
+
+        _uiState.update { it.copy(isLoading = false) }
     }
 
     fun onUsernameChange(username: String) {
@@ -66,6 +75,28 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    private fun isTextFieldsValid(type: String): Boolean {
+        val usernameValid = _uiState.value.username.isNotBlank()
+        val emailValid = _uiState.value.email.isNotBlank()
+        val passwordValid = _uiState.value.password.isNotBlank()
+        val confirmPasswordValid = _uiState.value.confirmPassword.isNotBlank()
+        _uiState.update { currentState ->
+            currentState.copy(
+                usernameError = if (usernameValid) currentState.usernameError else UiText.StringResource(
+                    R.string.cannot_be_empty
+                ),
+                emailError = if (emailValid) currentState.emailError else UiText.StringResource(R.string.cannot_be_empty),
+                passwordError = if (passwordValid) currentState.passwordError else UiText.StringResource(
+                    R.string.cannot_be_empty
+                ),
+                confirmPasswordError = if (confirmPasswordValid) currentState.confirmPasswordError else UiText.StringResource(
+                    R.string.cannot_be_empty
+                )
+            )
+        }
+
+        return if (type == "login") (emailValid && passwordValid) else (usernameValid && emailValid && passwordValid && confirmPasswordValid)
+    }
 
     fun login(
         onNavigateToHome: () -> Unit
@@ -106,31 +137,9 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    private fun isTextFieldsValid(type: String): Boolean {
-        val usernameValid = _uiState.value.username.isNotBlank()
-        val emailValid = _uiState.value.email.isNotBlank()
-        val passwordValid = _uiState.value.password.isNotBlank()
-        val confirmPasswordValid = _uiState.value.confirmPassword.isNotBlank()
-        _uiState.update { currentState ->
-            currentState.copy(
-                usernameError = if (usernameValid) currentState.usernameError else UiText.StringResource(
-                    R.string.cannot_be_empty
-                ),
-                emailError = if (emailValid) currentState.emailError else UiText.StringResource(R.string.cannot_be_empty),
-                passwordError = if (passwordValid) currentState.passwordError else UiText.StringResource(
-                    R.string.cannot_be_empty
-                ),
-                confirmPasswordError = if (confirmPasswordValid) currentState.confirmPasswordError else UiText.StringResource(
-                    R.string.cannot_be_empty
-                )
-            )
-        }
-
-        return if (type == "login") (emailValid && passwordValid) else (usernameValid && emailValid && passwordValid && confirmPasswordValid)
-    }
 
     fun signup(
-        onNavigateToHome: () -> Unit
+        onNavigateToHome: (password: String) -> Unit
     ) {
         val username = _uiState.value.username
         val email = _uiState.value.email
@@ -191,25 +200,30 @@ class AuthViewModel @Inject constructor(
 
 
                     is Status.Success -> {
-                        //TODO change to not be hardcoded
-                        val (mcElieceSK, mcEliecePK) = McEliece.generateKeyPair()
-
-                        val strMcElieceSK = Json.encodeToString(mcElieceSK)
-                        val strMcEliecePK = Json.encodeToString(mcEliecePK)
-
-                        val encryptedMcElieceSK = AES.encrypt(strMcElieceSK, password)
+                        val mapEncryptedSKs = mutableMapOf<String, String>()
+                        val mapPKs = mutableMapOf<String, String>()
+                        for((name, alg) in Algorithm.map) {
+                            val (secretKey, publicKey) = viewModelScope.async {
+                                alg.generateKeyPair()
+                            }.await()
+                            val stringSK = Json.encodeToString(secretKey)
+                            val stringPK = Json.encodeToString(publicKey)
+                            val encryptedSK = AES.encrypt(stringSK, password)
+                            mapEncryptedSKs[name.name] = encryptedSK
+                            mapPKs[name.name] = stringPK
+                        }
 
                         userRepository.createUser(
                             User(
                                 id = authRepository.currentUserId,
                                 email = email,
                                 username = username,
-                                encryptedSecretKeys = mapOf(Algorithm.MCELIECE.name to encryptedMcElieceSK),
-                                publicKeys = mapOf(Algorithm.MCELIECE.name to strMcEliecePK)
+                                encryptedSecretKeys = mapEncryptedSKs,
+                                publicKeys = mapPKs
                             )
                         )
                         _uiState.update { it.copy(isLoading = false) }
-                        onNavigateToHome()
+                        onNavigateToHome(password)
                     }
 
                 }

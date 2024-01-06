@@ -17,38 +17,6 @@ import kotlin.streams.toList
 import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
 import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
 
-
-@Serializable
-data class GoppaCode(
-    @Serializable(MatrixSerializer::class) val gMatrix: Array<LongArray>,
-    val support: List<@Serializable(ElementSerializer::class) Element>,
-    val gPoly: @Serializable(PolySerializer::class) Poly<@Serializable(ElementSerializer::class) Element>,
-) {
-    constructor() : this(
-        Array(0) { LongArray(0) },
-        listOf<Element>(),
-        Poly.create(GF(2, 1), Element.zero(2))
-    )
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as GoppaCode
-
-        if (!gMatrix.contentDeepEquals(other.gMatrix)) return false
-        if (support != other.support) return false
-        return gPoly == other.gPoly
-    }
-
-    override fun hashCode(): Int {
-        var result = gMatrix.contentDeepHashCode()
-        result = 31 * result + support.hashCode()
-        result = 31 * result + gPoly.hashCode()
-        return result
-    }
-}
-
 fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
     val support = ff2m.iterator().asSequence().toList().shuffled()
     val gPoly = IrreduciblePolynomials.randomIrreduciblePolynomial(ff2m, t, Well19937c())

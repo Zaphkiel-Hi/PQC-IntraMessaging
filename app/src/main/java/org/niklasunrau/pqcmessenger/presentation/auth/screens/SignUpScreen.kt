@@ -41,7 +41,7 @@ import org.niklasunrau.pqcmessenger.presentation.util.Dimens.LargePadding
 fun SignUpScreen(
     onNavigateToStart: () -> Unit,
     onNavigateToLogIn: () -> Unit,
-    onNavigateToMain: () -> Unit,
+    onNavigateToMain: (String) -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
