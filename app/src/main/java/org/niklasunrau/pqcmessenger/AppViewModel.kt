@@ -10,8 +10,13 @@ class AppViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    fun isUserSignedIn(): Boolean {
-        return authRepository.isUserSignedIn
+//    fun isUserSignedIn(): Boolean {
+//        return authRepository.isUserSignedIn
+//    }
+
+    fun logoutPotentialUser(){
+        if(authRepository.isUserSignedIn)
+            authRepository.signOut()
     }
 
 }

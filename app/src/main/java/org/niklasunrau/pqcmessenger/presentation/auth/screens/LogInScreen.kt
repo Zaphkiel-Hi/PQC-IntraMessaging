@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +41,7 @@ fun LogInScreen(
     onNavigateToStart: () -> Unit,
     onNavigateToResetPassword: () -> Unit,
     onNavigateToSignUp: () -> Unit,
-    onNavigateToMain: () -> Unit,
+    onNavigateToMain: (String) -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,13 +71,12 @@ fun LogInScreen(
         )
         Spacer(modifier = Modifier.height(MediumPadding))
         LogInTextField(
-            label = stringResource(id = R.string.email),
-            icon = Icons.Outlined.Email,
-            value = uiState.email,
-            type = KeyboardType.Email,
-            errorText = uiState.emailError.asString(),
+            label = stringResource(id = R.string.username),
+            icon = Icons.Outlined.Person,
+            value = uiState.username,
+            errorText = uiState.usernameError.asString(),
             onValueChanged = {
-                viewModel.onEmailChange(it)
+                viewModel.onUsernameChange(it)
             }
         )
         LogInTextField(

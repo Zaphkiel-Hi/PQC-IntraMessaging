@@ -68,6 +68,7 @@ fun ChatsScreen(
     var showAddDialog by remember {
         mutableStateOf(false)
     }
+
     CustomNavigationDrawer(
         title = stringResource(id = R.string.app_name),
         navigationItems = viewModel.navigationItemsList,
@@ -109,7 +110,6 @@ fun ChatsScreen(
                     viewModel.onUsernameChange("")
                     showAddDialog = false
                 },
-//                containerColor = PrimaryColor,
                 titleContentColor = Color.White,
 
                 title = { Text(text = stringResource(R.string.start_new_chat)) },

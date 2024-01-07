@@ -5,10 +5,12 @@ import androidx.compose.material.icons.filled.ContactPage
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.toObject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
@@ -18,14 +20,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.niklasunrau.pqcmessenger.R
+import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
+import org.niklasunrau.pqcmessenger.domain.crypto.aes.AES
+import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McElieceSecretKey
 import org.niklasunrau.pqcmessenger.domain.model.Chat
 import org.niklasunrau.pqcmessenger.domain.model.Message
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.ChatRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
+import org.niklasunrau.pqcmessenger.domain.util.Algorithm
 import org.niklasunrau.pqcmessenger.domain.util.ChatType
+import org.niklasunrau.pqcmessenger.domain.util.Json.json
 import org.niklasunrau.pqcmessenger.domain.util.Route
 import org.niklasunrau.pqcmessenger.presentation.util.NavigationItem
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
@@ -35,18 +43,17 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
-    private val chatRepository: ChatRepository
-
+    private val chatRepository: ChatRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MainUIState())
     val uiState = _uiState.asStateFlow()
 
     init {
-
         viewModelScope.launch {
             val currentUser = userRepository.getUserById(authRepository.currentUserId)!!
-            val encryptedKeys = currentUser.encryptedSecretKeys
             _uiState.update { it.copy(currentUser = currentUser) }
+
 
             val chats = chatRepository.getUserChats(currentUser.id)
             val idToChat = mutableMapOf<String, Chat>()
@@ -61,6 +68,27 @@ class MainViewModel @Inject constructor(
 
             }
             _uiState.update { it.copy(idToChat = idToChat) }
+
+
+            initKeys(savedStateHandle["password"])
+
+        }
+    }
+
+    private suspend fun initKeys(password: String?) {
+        withContext(Dispatchers.Default) {
+            if (password.isNullOrEmpty()) return@withContext
+            if (_uiState.value.currentUserSecretKeys.isNotEmpty()) return@withContext
+
+            val encryptedMap = _uiState.value.currentUser.encryptedSecretKeys
+            val secretKeys = mutableMapOf<Algorithm.Type, AsymmetricSecretKey>()
+            for ((name, cipher) in encryptedMap) {
+                val type = Algorithm.Type.valueOf(name)
+                val decrypted = AES.decrypt(cipher, password)
+                val secretKey = json.decodeFromString<AsymmetricSecretKey>(decrypted) as McElieceSecretKey
+                secretKeys[type] = secretKey
+            }
+            _uiState.update { it.copy(currentUserSecretKeys = secretKeys) }
         }
     }
 
@@ -195,10 +223,7 @@ class MainViewModel @Inject constructor(
         chats.replace(chatId, newChat)
         _uiState.update {
             it.copy(
-                idToChat = chats,
-                currentText = "",
-                currentChatListener = null,
-                currentChatMessages = listOf()
+                idToChat = chats, currentText = "", currentChatListener = null, currentChatMessages = listOf()
             )
         }
 

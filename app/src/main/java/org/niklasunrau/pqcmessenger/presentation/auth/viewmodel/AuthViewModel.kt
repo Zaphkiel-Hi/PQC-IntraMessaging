@@ -15,14 +15,16 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.niklasunrau.pqcmessenger.R
+import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricPublicKey
+import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.crypto.aes.AES
 import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
 import org.niklasunrau.pqcmessenger.domain.util.Algorithm
+import org.niklasunrau.pqcmessenger.domain.util.Json.json
 import org.niklasunrau.pqcmessenger.domain.util.Status
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
 import javax.inject.Inject
@@ -35,23 +37,22 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUIState())
     val uiState = _uiState.asStateFlow()
 
-    fun logging(string: String) {
-        Log.d("TEST", string)
-    }
-
     fun test() {
-        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            val (mcElieceSK, mcEliecePK) = viewModelScope.async() {
+            val (secretKey, _) = viewModelScope.async {
                 McEliece.generateKeyPair()
             }.await()
-            val strMcElieceSK = Json.encodeToString(mcElieceSK)
-            val strMcEliecePK = Json.encodeToString(mcEliecePK)
-
-            val encryptedMcElieceSK = AES.encrypt(strMcElieceSK, "TESTTT")
+            val stringSK = json.encodeToString<AsymmetricSecretKey>(secretKey)
+            Log.d("TEST", stringSK)
+//
+//            val encryptedSK = AES.encrypt(stringSK, "123456")
+//
+//            val decrypted = AES.decrypt(encryptedSK, "123456")
+//
+//            val test = json.decodeFromString<AsymmetricSecretKey>(decrypted) as McElieceSecretKey
+//            Log.d("TEST", test.shuffleInvMatrix.contentDeepToString())
         }
 
-        _uiState.update { it.copy(isLoading = false) }
     }
 
     fun onUsernameChange(username: String) {
@@ -85,7 +86,9 @@ class AuthViewModel @Inject constructor(
                 usernameError = if (usernameValid) currentState.usernameError else UiText.StringResource(
                     R.string.cannot_be_empty
                 ),
-                emailError = if (emailValid) currentState.emailError else UiText.StringResource(R.string.cannot_be_empty),
+                emailError = if (emailValid) currentState.emailError else UiText.StringResource(
+                    R.string.cannot_be_empty
+                ),
                 passwordError = if (passwordValid) currentState.passwordError else UiText.StringResource(
                     R.string.cannot_be_empty
                 ),
@@ -95,13 +98,13 @@ class AuthViewModel @Inject constructor(
             )
         }
 
-        return if (type == "login") (emailValid && passwordValid) else (usernameValid && emailValid && passwordValid && confirmPasswordValid)
+        return if (type == "login") (usernameValid && passwordValid) else (usernameValid && emailValid && passwordValid && confirmPasswordValid)
     }
 
     fun login(
-        onNavigateToHome: () -> Unit
+        onNavigateToHome: (String) -> Unit
     ) {
-        val email = uiState.value.email
+        val username = uiState.value.username
         val password = uiState.value.password
         _uiState.update { it.copy(isLoading = true) }
 
@@ -111,16 +114,29 @@ class AuthViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            authRepository.login(email, password).collectLatest { result ->
+
+            val user = userRepository.getUserByUsername(username)
+            if (user == null) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        usernameError = UiText.StringResource(R.string.invalid_credentials),
+                        passwordError = UiText.StringResource(R.string.invalid_credentials)
+                    )
+                }
+                return@launch
+            }
+
+            authRepository.login(user.email, password).collectLatest { result ->
                 when (result) {
                     is Status.Loading -> {
                     }
 
                     is Status.Error -> {
-                        _uiState.update { it.copy(isLoading = false) }
                         when (result.error) {
                             is FirebaseAuthInvalidCredentialsException -> _uiState.update { currentState ->
                                 currentState.copy(
+                                    isLoading = false,
                                     usernameError = UiText.StringResource(R.string.invalid_credentials),
                                     passwordError = UiText.StringResource(R.string.invalid_credentials)
                                 )
@@ -130,7 +146,7 @@ class AuthViewModel @Inject constructor(
 
                     is Status.Success -> {
                         _uiState.update { it.copy(isLoading = false) }
-                        onNavigateToHome()
+                        onNavigateToHome(password)
                     }
                 }
             }
@@ -139,7 +155,7 @@ class AuthViewModel @Inject constructor(
 
 
     fun signup(
-        onNavigateToHome: (password: String) -> Unit
+        onNavigateToHome: (String) -> Unit
     ) {
         val username = _uiState.value.username
         val email = _uiState.value.email
@@ -202,12 +218,12 @@ class AuthViewModel @Inject constructor(
                     is Status.Success -> {
                         val mapEncryptedSKs = mutableMapOf<String, String>()
                         val mapPKs = mutableMapOf<String, String>()
-                        for((name, alg) in Algorithm.map) {
+                        for ((name, alg) in Algorithm.map) {
                             val (secretKey, publicKey) = viewModelScope.async {
                                 alg.generateKeyPair()
                             }.await()
-                            val stringSK = Json.encodeToString(secretKey)
-                            val stringPK = Json.encodeToString(publicKey)
+                            val stringSK = json.encodeToString<AsymmetricSecretKey>(secretKey)
+                            val stringPK = json.encodeToString<AsymmetricPublicKey>(publicKey)
                             val encryptedSK = AES.encrypt(stringSK, password)
                             mapEncryptedSKs[name.name] = encryptedSK
                             mapPKs[name.name] = stringPK

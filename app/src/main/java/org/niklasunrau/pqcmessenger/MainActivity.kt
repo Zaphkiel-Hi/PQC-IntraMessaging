@@ -19,6 +19,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.navigation
 import dagger.hilt.android.AndroidEntryPoint
 import org.niklasunrau.pqcmessenger.domain.util.Route
 import org.niklasunrau.pqcmessenger.presentation.auth.screens.LogInScreen
@@ -47,6 +49,7 @@ class MainActivity : ComponentActivity() {
             MessengerTheme {
                 val navController = rememberNavController()
                 val appViewModel = hiltViewModel<AppViewModel>()
+                appViewModel.logoutPotentialUser()
 
                 fun NavOptionsBuilder.popUpToTop(navController: NavController) {
                     popUpTo(navController.currentBackStackEntry?.destination?.route ?: return) {
@@ -54,26 +57,30 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                fun navigateTo(route: Route, withPopUp: Boolean = false) {
-                    navController.navigate(route.name) {
-                        if (withPopUp)
-                            popUpToTop(navController)
+                fun navigateTo(
+                    route: Route, withPopUp: Boolean = false, argumentName: String? = null, argumentValue: String = ""
+                ) {
+                    val argument = if (argumentName != null) {
+                        "?$argumentName=$argumentValue"
+                    } else ""
+                    navController.navigate(route.name + argument) {
+                        if (withPopUp) popUpToTop(navController)
                     }
                 }
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     NavHost(
                         navController = navController,
-                        startDestination = if (appViewModel.isUserSignedIn()) Route.Main.name else Route.Auth.name,
+                        startDestination = Route.Auth.name,
                         modifier = Modifier.fillMaxSize(),
 
                         ) {
                         navigation(
-                            startDestination = Route.Start.name,
-                            route = Route.Auth.name
+                            route = Route.Auth.name,
+                            startDestination = Route.Start.name
                         ) {
+
                             composable(Route.Start.name) {
                                 StartScreen(
                                     onNavigateToLogIn = { navigateTo(Route.LogIn) },
@@ -87,7 +94,9 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToStart = { navigateTo(Route.Start) },
                                     onNavigateToResetPassword = { navigateTo(Route.ResetPassword) },
                                     onNavigateToSignUp = { navigateTo(Route.SignUp) },
-                                    onNavigateToMain = { navigateTo(Route.Main, true) },
+                                    onNavigateToMain = { password ->
+                                        navigateTo(Route.Main, true, "password", password)
+                                    },
                                     viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
 
                                 )
@@ -96,24 +105,28 @@ class MainActivity : ComponentActivity() {
                                 SignUpScreen(
                                     onNavigateToStart = { navigateTo(Route.Start) },
                                     onNavigateToLogIn = { navigateTo(Route.LogIn) },
-                                    onNavigateToMain = { password -> navigateTo(Route.Main, true) },
+                                    onNavigateToMain = { password ->
+                                        navigateTo(Route.Main, true, "password", password)
+                                    },
                                     viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
                                 )
                             }
                             composable(Route.ResetPassword.name) {
                                 ResetPasswordScreen()
                             }
+
                         }
                         navigation(
+                            route = Route.Main.name + "?password={password}",
                             startDestination = Route.Chats.name,
-                            route = Route.Main.name
+                            arguments = listOf(navArgument("password") { defaultValue = "" })
                         ) {
                             composable(Route.Chats.name) {
                                 ChatsScreen(
                                     onNavigateToRoute = { route -> navigateTo(route, true) },
                                     onNavigateToAuth = { navigateTo(Route.Auth, true) },
                                     onNavigateToSingleChat = { chatId ->
-                                        navController.navigate(Route.SingleChat.name + "/" + chatId)
+                                        navigateTo(Route.SingleChat, false, "chatId", chatId)
                                     },
                                     viewModel = it.sharedViewModel<MainViewModel>(navController = navController)
                                 )
@@ -138,13 +151,13 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable(
-                                Route.SingleChat.name + "/{chatId}"
+                                Route.SingleChat.name + "?chatId={chatId}"
                             ) { navBackStackEntry ->
                                 val chatId = navBackStackEntry.arguments?.getString("chatId")
                                 chatId?.let {
                                     SingleChatScreen(
                                         chatId = it,
-                                        onNavigateToChats = {  navController.popBackStack() },
+                                        onNavigateToChats = { navController.popBackStack() },
                                         viewModel = navBackStackEntry.sharedViewModel<MainViewModel>(
                                             navController = navController
                                         )
@@ -152,6 +165,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
+
                     }
                 }
             }

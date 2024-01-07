@@ -1,7 +1,10 @@
 package org.niklasunrau.pqcmessenger.domain.crypto
 
+import kotlinx.serialization.Serializable
 
+@Serializable
 abstract class AsymmetricSecretKey
+@Serializable
 abstract class AsymmetricPublicKey
 abstract class AsymmetricAlgorithm <S : AsymmetricSecretKey, P : AsymmetricPublicKey>{
 

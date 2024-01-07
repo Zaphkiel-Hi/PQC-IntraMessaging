@@ -3,11 +3,13 @@ package org.niklasunrau.pqcmessenger.domain.crypto.mceliece
 import cc.redberry.rings.Rings
 import cc.redberry.rings.poly.univar.UnivariatePolynomial
 import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricPublicKey
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 
 @Serializable
+@SerialName("McEliece")
 data class McElieceSecretKey(
     @Serializable(MatrixSerializer::class) val shuffleInvMatrix: Array<LongArray>,
     @Serializable(PermMatrixSerializer::class) val permInvMatrix: Array<LongArray>,
@@ -35,6 +37,7 @@ data class McElieceSecretKey(
 }
 
 @Serializable
+@SerialName("McEliece")
 data class McEliecePublicKey(
     @Serializable(MatrixSerializer::class) var publicMatrix: Array<LongArray>,
 ) : AsymmetricPublicKey() {

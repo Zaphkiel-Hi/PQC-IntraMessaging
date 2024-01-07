@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,13 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import org.niklasunrau.pqcmessenger.data.test.AuthRepositoryTest
-import org.niklasunrau.pqcmessenger.data.test.ChatRepositoryTest
-import org.niklasunrau.pqcmessenger.data.test.UserRepositoryTest
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomScaffold
 import org.niklasunrau.pqcmessenger.presentation.composables.ReplyTextField
 import org.niklasunrau.pqcmessenger.presentation.main.viewmodel.MainViewModel
@@ -140,17 +135,17 @@ fun SingleChatScreen(
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun SingleChatPreview() {
-    Surface(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        SingleChatScreen(
-            chatId = "",
-            onNavigateToChats = { },
-            MainViewModel(AuthRepositoryTest(), UserRepositoryTest(), ChatRepositoryTest())
-        )
-    }
-}
+//
+//@Preview(showBackground = true)
+//@Composable
+//fun SingleChatPreview() {
+//    Surface(
+//        modifier = Modifier.fillMaxSize()
+//    ) {
+//        SingleChatScreen(
+//            chatId = "",
+//            onNavigateToChats = { },
+//            MainViewModel(AuthRepositoryTest(), UserRepositoryTest(), ChatRepositoryTest())
+//        )
+//    }
+//}
