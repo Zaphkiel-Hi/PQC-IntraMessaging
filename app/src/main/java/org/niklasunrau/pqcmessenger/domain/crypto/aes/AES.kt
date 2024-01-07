@@ -27,16 +27,27 @@ object AES {
         keyGenerator.init(128)
     }
 
-    private fun getRandomNonce(len: Int): ByteArray{
+    private fun getRandomNonce(len: Int): ByteArray {
         val nonce = ByteArray(len)
         SecureRandom().nextBytes(nonce)
         return nonce
     }
+
     private fun generateKeyFromPassword(password: String, salt: ByteArray): SecretKey {
         val spec = PBEKeySpec(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH)
         return SecretKeySpec(pbeFactory.generateSecret(spec).encoded, "AES")
     }
 
+    fun generateSymmetricKey(): SecretKey = keyGenerator.generateKey()
+    fun retrieveSymmetricKey(key: String): SecretKey = SecretKeySpec(Base64.decode(key.toByteArray(), Base64.DEFAULT), "AES")
+    fun encrypt(message: String, key: SecretKey): String {
+        val iv = getRandomNonce(IV_LENGTH)
+        cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(TAG_LENGTH, iv))
+        val cipherText = cipher.doFinal(message.toByteArray(CHARSET))
+
+        val cipherWithIv = iv + cipherText
+        return Base64.encodeToString(cipherWithIv, Base64.DEFAULT)
+    }
 
     fun encrypt(message: String, password: String): String {
         val salt = getRandomNonce(SALT_LENGTH)
@@ -49,6 +60,16 @@ object AES {
         val cipherWithSaltIv = salt + iv + cipherText
         return Base64.encodeToString(cipherWithSaltIv, Base64.DEFAULT)
     }
+
+    fun decrypt(cipherText: String, key: SecretKey): String {
+        val bytes = Base64.decode(cipherText, Base64.DEFAULT)
+
+        val iv = bytes.sliceArray(0..<IV_LENGTH)
+        val content = bytes.sliceArray(IV_LENGTH..<bytes.size)
+        cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_LENGTH, iv))
+        return cipher.doFinal(content).toString(CHARSET)
+    }
+
 
     fun decrypt(cipherText: String, password: String): String {
         val bytes = Base64.decode(cipherText, Base64.DEFAULT)

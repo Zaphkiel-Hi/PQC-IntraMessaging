@@ -12,6 +12,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.serializer
 import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece.ff2m
+import org.niklasunrau.pqcmessenger.domain.crypto.toBitArray
 
 class ElementSerializer : KSerializer<UnivariatePolynomialZp64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Element", PrimitiveKind.STRING)
@@ -21,7 +22,7 @@ class ElementSerializer : KSerializer<UnivariatePolynomialZp64> {
     }
 
     override fun deserialize(decoder: Decoder): UnivariatePolynomialZp64 {
-        val coeffs = decoder.decodeString().toLongArray()
+        val coeffs = decoder.decodeString().toBitArray()
         return UnivariatePolynomialZp64.create(2, coeffs)
     }
 }
@@ -38,7 +39,7 @@ class PolySerializer : KSerializer<UnivariatePolynomial<UnivariatePolynomialZp64
 
     override fun deserialize(decoder: Decoder): UnivariatePolynomial<UnivariatePolynomialZp64> {
         val coeffsInString = decoder.decodeSerializableValue(delegateSerializer)
-        val coeffs = coeffsInString.map { UnivariatePolynomialZp64.create(2, it.toLongArray()) }.toTypedArray()
+        val coeffs = coeffsInString.map { UnivariatePolynomialZp64.create(2, it.toBitArray()) }.toTypedArray()
         return UnivariatePolynomial.create(ff2m, *coeffs)
     }
 }
@@ -73,6 +74,6 @@ class MatrixSerializer : KSerializer<Array<LongArray>> {
 
     override fun deserialize(decoder: Decoder): Array<LongArray> {
         val list = decoder.decodeSerializableValue(delegateSerializer)
-        return Array(list.size) { list[it].toLongArray() }
+        return Array(list.size) { list[it].toBitArray() }
     }
 }

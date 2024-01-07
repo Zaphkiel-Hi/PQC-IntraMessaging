@@ -1,5 +1,6 @@
 package org.niklasunrau.pqcmessenger.presentation.main.viewmodel
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContactPage
 import androidx.compose.material.icons.filled.Home
@@ -22,9 +23,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.niklasunrau.pqcmessenger.R
+import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricPublicKey
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.crypto.aes.AES
-import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McElieceSecretKey
+import org.niklasunrau.pqcmessenger.domain.crypto.toBitArray
+import org.niklasunrau.pqcmessenger.domain.crypto.toSecretKey
 import org.niklasunrau.pqcmessenger.domain.model.Chat
 import org.niklasunrau.pqcmessenger.domain.model.Message
 import org.niklasunrau.pqcmessenger.domain.model.User
@@ -35,6 +38,7 @@ import org.niklasunrau.pqcmessenger.domain.util.Algorithm
 import org.niklasunrau.pqcmessenger.domain.util.ChatType
 import org.niklasunrau.pqcmessenger.domain.util.Json.json
 import org.niklasunrau.pqcmessenger.domain.util.Route
+import org.niklasunrau.pqcmessenger.presentation.util.DecryptedMessage
 import org.niklasunrau.pqcmessenger.presentation.util.NavigationItem
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
 import javax.inject.Inject
@@ -52,7 +56,7 @@ class MainViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val currentUser = userRepository.getUserById(authRepository.currentUserId)!!
-            _uiState.update { it.copy(currentUser = currentUser) }
+            _uiState.update { it.copy(loggedInUser = currentUser) }
 
 
             val chats = chatRepository.getUserChats(currentUser.id)
@@ -72,28 +76,29 @@ class MainViewModel @Inject constructor(
 
             initKeys(savedStateHandle["password"])
 
+
         }
     }
 
     private suspend fun initKeys(password: String?) {
         withContext(Dispatchers.Default) {
             if (password.isNullOrEmpty()) return@withContext
-            if (_uiState.value.currentUserSecretKeys.isNotEmpty()) return@withContext
+            if (_uiState.value.loggedInUserSecretKeys.isNotEmpty()) return@withContext
 
-            val encryptedMap = _uiState.value.currentUser.encryptedSecretKeys
+            val encryptedMap = _uiState.value.loggedInUser.encryptedSecretKeys
             val secretKeys = mutableMapOf<Algorithm.Type, AsymmetricSecretKey>()
             for ((name, cipher) in encryptedMap) {
                 val type = Algorithm.Type.valueOf(name)
                 val decrypted = AES.decrypt(cipher, password)
-                val secretKey = json.decodeFromString<AsymmetricSecretKey>(decrypted) as McElieceSecretKey
+                val secretKey = json.decodeFromString<AsymmetricSecretKey>(decrypted)
                 secretKeys[type] = secretKey
             }
-            _uiState.update { it.copy(currentUserSecretKeys = secretKeys) }
+            _uiState.update { it.copy(loggedInUserSecretKeys = secretKeys) }
         }
     }
 
     fun getOtherUserId(chat: Chat) =
-        if (chat.users[0] != _uiState.value.currentUser.id) chat.users[0] else chat.users[1]
+        if (chat.users[0] != _uiState.value.loggedInUser.id) chat.users[0] else chat.users[1]
 
     private suspend fun saveOtherUser(chat: Chat): User {
         val otherUserId = getOtherUserId(chat)
@@ -128,6 +133,11 @@ class MainViewModel @Inject constructor(
         _uiState.update { it.copy(currentRoute = newRoute) }
     }
 
+
+    fun onCurrentAlgChange(alg: Algorithm.Type) {
+        _uiState.update { it.copy(currentAlg = alg) }
+    }
+
     fun onCurrentTextChange(newText: String) {
         _uiState.update { it.copy(currentText = newText) }
 
@@ -156,7 +166,7 @@ class MainViewModel @Inject constructor(
                 }
             }
 
-            if (newChatUsername == _uiState.value.currentUser.username) {
+            if (newChatUsername == _uiState.value.loggedInUser.username) {
                 _uiState.update { it.copy(newChatError = UiText.StringResource(R.string.cannot_add_yourself)) }
                 currentCoroutineContext().cancel()
             }
@@ -169,7 +179,7 @@ class MainViewModel @Inject constructor(
                 _uiState.update { it.copy(newChatError = UiText.StringResource(R.string.user_not_found)) }
             } else {
                 saveUserWithId(user)
-                var newChat = Chat(listOf(_uiState.value.currentUser.id, user.id))
+                var newChat = Chat(listOf(_uiState.value.loggedInUser.id, user.id))
                 val newId = chatRepository.startNewChat(newChat)
                 newChat = newChat.copy(id = newId)
 
@@ -182,10 +192,32 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun onSendMessage(chatId: String, text: String) {
+    fun onSendSingleMessage(chatId: String, text: String) {
         if (text.isBlank()) return
+
+        // Generate AES Key and encrypt message
+        val symmetricKey = AES.generateSymmetricKey()
+        val encryptedMessage = AES.encrypt(text, symmetricKey)
+
+        // Get other users public key and respective algorithm
+        val otherUser = _uiState.value.idToUser[getOtherUserId(_uiState.value.idToChat[chatId]!!)]!!
+        val selectedPublicKeyRaw = otherUser.publicKeys[_uiState.value.currentAlg.name]!!
+        val selectedPublicKey = json.decodeFromString<AsymmetricPublicKey>(selectedPublicKeyRaw)
+
+        val asymmetricAlgorithm = Algorithm.map[_uiState.value.currentAlg]!!
+
+
+        // Encrypt aes key with asymmetric algorithm
+        val encryptedSymmetricKey = asymmetricAlgorithm.encrypt(symmetricKey.toBitArray(), selectedPublicKey).joinToString("")
+
         val currentTime = System.currentTimeMillis()
-        val message = Message(_uiState.value.currentUser.id, text, currentTime)
+        val message = Message(
+            _uiState.value.loggedInUser.id,
+            encryptedMessage,
+            encryptedSymmetricKey,
+            _uiState.value.currentAlg.name,
+            currentTime
+        )
         viewModelScope.launch {
             chatRepository.sendMessage(chatId, message)
         }
@@ -193,17 +225,25 @@ class MainViewModel @Inject constructor(
     }
 
     fun initializeChat(chatId: String) {
+        Log.d("TEST", _uiState.value.loggedInUserSecretKeys.toString())
         viewModelScope.launch {
             _uiState.update { mainUIState ->
                 mainUIState.copy(currentChatListener = chatRepository.getMessagesCollection(chatId)
                     .addSnapshotListener { snapshot, e ->
                         if (e != null) return@addSnapshotListener
                         if (snapshot != null) {
-                            _uiState.update { mainUIState ->
-                                mainUIState.copy(currentChatMessages = snapshot.documents.mapNotNull {
-                                    it.toObject<Message>()
-                                }.sortedBy { it.timestamp })
+                            val newMessages = mutableListOf<DecryptedMessage>()
+                            for (change in snapshot.documentChanges) {
+                                val message = change.document.toObject<Message>()
+                                val algType = Algorithm.Type.valueOf(message.algorithm)
+                                val secretKey = _uiState.value.loggedInUserSecretKeys[algType]!!
+                                val asymmetricAlgorithm = Algorithm.map[algType]!!
+                                val symmetricKey = asymmetricAlgorithm.decrypt(message.encryptedKey.toBitArray(), secretKey).toSecretKey()
+                                val decodedText = AES.decrypt(message.encryptedText, symmetricKey)
+                                newMessages.add(DecryptedMessage(message.fromId, decodedText, message.timestamp))
                             }
+                            val allMessages = (_uiState.value.currentChatMessages + newMessages).sortedBy { it.timestamp }
+                            _uiState.update { it.copy(currentChatMessages = allMessages) }
                         }
                     })
             }

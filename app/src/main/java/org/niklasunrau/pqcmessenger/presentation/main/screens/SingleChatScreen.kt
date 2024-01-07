@@ -45,6 +45,8 @@ fun SingleChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val chatListState = rememberLazyListState()
+
+
     
 
     LaunchedEffect(key1 = Unit) {
@@ -98,7 +100,7 @@ fun SingleChatScreen(
                     var topPadding = 8.dp
                     var startPadding = SmallPadding
                     var endPadding = LargePadding
-                    if (message.fromId == uiState.currentUser.id) {
+                    if (message.fromId == uiState.loggedInUser.id) {
                         alignment = Alignment.CenterEnd
                         color = PrimaryColor
                         startPadding = LargePadding
@@ -130,11 +132,12 @@ fun SingleChatScreen(
             }
             ReplyTextField(value = uiState.currentText,
                 onValueChange = { viewModel.onCurrentTextChange(it) },
-                onSendClicked = { viewModel.onSendMessage(chatId, uiState.currentText) })
+                onSendClicked = { viewModel.onSendSingleMessage(chatId, uiState.currentText) },
+                onAlgorithmClicked = { alg -> viewModel.onCurrentAlgChange(alg)})
         }
     }
 }
-
+//
 //
 //@Preview(showBackground = true)
 //@Composable

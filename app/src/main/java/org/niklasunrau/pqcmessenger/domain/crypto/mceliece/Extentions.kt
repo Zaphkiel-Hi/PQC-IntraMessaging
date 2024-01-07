@@ -46,9 +46,7 @@ fun Element.toBinary(): String {
     return this.stream().toArray().joinToString(separator = "")
 }
 
-fun String.toLongArray(): LongArray{
-    return this.map { it.toString().toLong() }.toLongArray()
-}
+
 
 fun Element.toInt(): Int {
     var bin = ""

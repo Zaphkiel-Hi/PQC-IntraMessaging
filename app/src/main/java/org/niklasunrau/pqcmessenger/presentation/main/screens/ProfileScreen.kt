@@ -30,7 +30,7 @@ fun ProfileScreen(
         Column(
             modifier = Modifier.padding(innerPadding),
         ) {
-            Text(text = uiState.currentUser.username)
+            Text(text = uiState.loggedInUser.username)
         }
     }
 }

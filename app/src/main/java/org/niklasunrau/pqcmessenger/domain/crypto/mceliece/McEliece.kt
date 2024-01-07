@@ -8,6 +8,8 @@ import com.google.common.math.IntMath.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricAlgorithm
+import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricPublicKey
+import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
 import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
 
@@ -39,8 +41,9 @@ object McEliece : AsymmetricAlgorithm<McElieceSecretKey, McEliecePublicKey>() {
     }
 
 
-    override fun encrypt(message: String, publicKey: McEliecePublicKey): String {
-        val codeword = multiplyBinaryMatrices(message.toLongArray(), publicKey.publicMatrix)
+    override fun encrypt(message: LongArray, publicKey: AsymmetricPublicKey): LongArray {
+        publicKey as McEliecePublicKey
+        val codeword = multiplyBinaryMatrices(message, publicKey.publicMatrix)
 
         val errorLocations = (0..<n).shuffled().slice(0..<t)
 
@@ -48,14 +51,14 @@ object McEliece : AsymmetricAlgorithm<McElieceSecretKey, McEliecePublicKey>() {
             codeword[loc] = (codeword[loc] + 1) % 2
         }
 
-        return codeword.joinToString("")
+        return codeword
     }
 
-    override fun decrypt(cipher: String, secretKey: McElieceSecretKey): String {
-
-        val noPermCipher = multiplyBinaryMatrices(cipher.toLongArray(), secretKey.permInvMatrix)
+    override fun decrypt(cipher: LongArray, secretKey: AsymmetricSecretKey): LongArray {
+        secretKey as McElieceSecretKey
+        val noPermCipher = multiplyBinaryMatrices(cipher, secretKey.permInvMatrix)
         val decodedCipher = decode(noPermCipher, secretKey.goppaCode)
-        return multiplyBinaryMatrices(decodedCipher, secretKey.shuffleInvMatrix).joinToString("")
+        return multiplyBinaryMatrices(decodedCipher, secretKey.shuffleInvMatrix)
     }
 
 }

@@ -1,6 +1,7 @@
 package org.niklasunrau.pqcmessenger
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -80,7 +81,6 @@ class MainActivity : ComponentActivity() {
                             route = Route.Auth.name,
                             startDestination = Route.Start.name
                         ) {
-
                             composable(Route.Start.name) {
                                 StartScreen(
                                     onNavigateToLogIn = { navigateTo(Route.LogIn) },
@@ -96,6 +96,8 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToSignUp = { navigateTo(Route.SignUp) },
                                     onNavigateToMain = { password ->
                                         navigateTo(Route.Main, true, "password", password)
+                                        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+
                                     },
                                     viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
 
@@ -107,6 +109,7 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToLogIn = { navigateTo(Route.LogIn) },
                                     onNavigateToMain = { password ->
                                         navigateTo(Route.Main, true, "password", password)
+                                        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                                     },
                                     viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
                                 )
@@ -124,7 +127,11 @@ class MainActivity : ComponentActivity() {
                             composable(Route.Chats.name) {
                                 ChatsScreen(
                                     onNavigateToRoute = { route -> navigateTo(route, true) },
-                                    onNavigateToAuth = { navigateTo(Route.Auth, true) },
+                                    onNavigateToAuth = {
+                                        navigateTo(Route.Auth, true)
+                                        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+
+                                    },
                                     onNavigateToSingleChat = { chatId ->
                                         navigateTo(Route.SingleChat, false, "chatId", chatId)
                                     },

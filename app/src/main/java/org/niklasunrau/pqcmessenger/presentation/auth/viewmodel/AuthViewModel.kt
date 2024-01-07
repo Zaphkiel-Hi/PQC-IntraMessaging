@@ -1,6 +1,5 @@
 package org.niklasunrau.pqcmessenger.presentation.auth.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -19,7 +18,6 @@ import org.niklasunrau.pqcmessenger.R
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricPublicKey
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.crypto.aes.AES
-import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
@@ -31,7 +29,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository, private val userRepository: UserRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUIState())
@@ -39,20 +38,8 @@ class AuthViewModel @Inject constructor(
 
     fun test() {
         viewModelScope.launch {
-            val (secretKey, _) = viewModelScope.async {
-                McEliece.generateKeyPair()
-            }.await()
-            val stringSK = json.encodeToString<AsymmetricSecretKey>(secretKey)
-            Log.d("TEST", stringSK)
-//
-//            val encryptedSK = AES.encrypt(stringSK, "123456")
-//
-//            val decrypted = AES.decrypt(encryptedSK, "123456")
-//
-//            val test = json.decodeFromString<AsymmetricSecretKey>(decrypted) as McElieceSecretKey
-//            Log.d("TEST", test.shuffleInvMatrix.contentDeepToString())
-        }
 
+        }
     }
 
     fun onUsernameChange(username: String) {
