@@ -19,10 +19,6 @@ class ChatRepositoryTest : ChatRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun updateLastMessage(chatId: String, message: String) {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun sendMessage(chatId: String, message: Message) {
         TODO("Not yet implemented")
     }

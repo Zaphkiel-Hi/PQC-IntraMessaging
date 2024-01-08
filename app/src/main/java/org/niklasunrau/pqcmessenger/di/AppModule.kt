@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.niklasunrau.pqcmessenger.di
 
 import dagger.Binds

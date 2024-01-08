@@ -7,5 +7,6 @@ data class Message(
     val algorithm: String,
     val timestamp: Long
 ) {
+    @Suppress("unused")
     constructor() : this("", "", mapOf(), "", 0L)
 }

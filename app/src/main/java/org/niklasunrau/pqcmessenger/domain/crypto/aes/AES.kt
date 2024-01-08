@@ -39,7 +39,6 @@ object AES {
     }
 
     fun generateSymmetricKey(): SecretKey = keyGenerator.generateKey()
-    fun retrieveSymmetricKey(key: String): SecretKey = SecretKeySpec(Base64.decode(key.toByteArray(), Base64.DEFAULT), "AES")
     fun encrypt(message: String, key: SecretKey): String {
         val iv = getRandomNonce(IV_LENGTH)
         cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(TAG_LENGTH, iv))

@@ -26,11 +26,6 @@ class ChatRepositoryImpl @Inject constructor(
         return newDoc.id
     }
 
-    override suspend fun updateLastMessage(chatId: String, message: String) {
-        Log.d("API", "updateLastMessage Call")
-        firestore.collection(CHAT_COLLECTION).document(chatId).update(LAST_MESSAGE_FIELD, message)
-    }
-
     override suspend fun getMessagesCollection(chatId: String): CollectionReference {
         Log.d("API", "getMessagesCollection Call")
         return firestore.collection(CHAT_COLLECTION).document(chatId).collection(MESSAGES_COLLECTION)
@@ -43,7 +38,6 @@ class ChatRepositoryImpl @Inject constructor(
     }
 
     companion object {
-        private const val LAST_MESSAGE_FIELD = "lastMessage"
         private const val USERS_FIELD = "users"
         private const val CHAT_COLLECTION = "chats"
         private const val MESSAGES_COLLECTION = "messages"

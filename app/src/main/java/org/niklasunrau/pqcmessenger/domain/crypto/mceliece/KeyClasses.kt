@@ -15,6 +15,7 @@ data class McElieceSecretKey(
     @Serializable(PermMatrixSerializer::class) val permInvMatrix: Array<LongArray>,
     val goppaCode: GoppaCode
 ) : AsymmetricSecretKey() {
+    @Suppress("unused")
     constructor() : this(Array(0) { LongArray(0) }, Array(0) { LongArray(0) }, GoppaCode())
 
     override fun equals(other: Any?): Boolean {
@@ -41,6 +42,7 @@ data class McElieceSecretKey(
 data class McEliecePublicKey(
     @Serializable(MatrixSerializer::class) var publicMatrix: Array<LongArray>,
 ) : AsymmetricPublicKey() {
+    @Suppress("unused")
     constructor() : this(Array(0) { LongArray(0) })
 
     override fun equals(other: Any?): Boolean {

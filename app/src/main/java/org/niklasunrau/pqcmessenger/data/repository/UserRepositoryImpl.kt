@@ -39,7 +39,6 @@ class UserRepositoryImpl @Inject constructor(
 
     companion object {
         private const val USERNAME_FIELD = "username"
-        private const val CHATS_FIELD = "chats"
         private const val USER_COLLECTION = "users"
     }
 }

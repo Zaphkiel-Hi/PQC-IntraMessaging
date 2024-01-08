@@ -9,5 +9,6 @@ data class Chat(
     val icon: String = "",
     val type: ChatType = ChatType.SINGLE
 ){
+    @Suppress("unused")
     constructor() : this(listOf())
 }
