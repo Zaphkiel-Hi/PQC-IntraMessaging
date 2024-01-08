@@ -21,12 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.niklasunrau.pqcmessenger.R
-import org.niklasunrau.pqcmessenger.data.test.AuthRepositoryTest
-import org.niklasunrau.pqcmessenger.data.test.UserRepositoryTest
 import org.niklasunrau.pqcmessenger.presentation.auth.viewmodel.AuthViewModel
 import org.niklasunrau.pqcmessenger.presentation.composables.AutoSizeText
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomCircularProgress
@@ -117,14 +114,14 @@ fun LogInScreen(
     CustomCircularProgress(isDisplayed = uiState.isLoading)
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun Preview() {
-    LogInScreen(
-        onNavigateToStart = { },
-        onNavigateToResetPassword = { },
-        onNavigateToSignUp = { },
-        onNavigateToMain = { },
-        AuthViewModel(AuthRepositoryTest(), UserRepositoryTest(), )
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//private fun Preview() {
+//    LogInScreen(
+//        onNavigateToStart = { },
+//        onNavigateToResetPassword = { },
+//        onNavigateToSignUp = { },
+//        onNavigateToMain = { },
+//        AuthViewModel(AuthRepositoryTest(), UserRepositoryTest(), )
+//    )
+//}

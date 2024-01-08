@@ -3,7 +3,6 @@ package org.niklasunrau.pqcmessenger.domain.crypto.mceliece
 import cc.redberry.rings.Rings.GF
 import cc.redberry.rings.poly.univar.IrreduciblePolynomials
 import cc.redberry.rings.poly.univar.UnivariateFactorization
-import kotlinx.serialization.Serializable
 import org.apache.commons.math3.random.Well19937c
 import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
@@ -13,12 +12,12 @@ import org.jetbrains.kotlinx.multik.ndarray.operations.append
 import org.jetbrains.kotlinx.multik.ndarray.operations.toArray
 import org.jetbrains.kotlinx.multik.ndarray.operations.toLongArray
 import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece.ff2m
+import org.niklasunrau.pqcmessenger.domain.crypto.mceliece.McEliece.support
 import kotlin.streams.toList
 import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
 import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
 
 fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
-    val support = ff2m.iterator().asSequence().toList().shuffled()
     val gPoly = IrreduciblePolynomials.randomIrreduciblePolynomial(ff2m, t, Well19937c())
 
     val xMatrix = Array(t) { Array(t) { ff2m.zero } }
@@ -71,7 +70,7 @@ fun generateCode(n: Int, m: Int, t: Int): GoppaCode {
 
     val gMatrix = hBinMatrix.nullspace()
 
-    return GoppaCode(gMatrix, support, gPoly)
+    return GoppaCode(gMatrix, gPoly)
 }
 
 private fun pattersonAlgorithm(cipher: LongArray, goppaCode: GoppaCode): LongArray {
@@ -85,7 +84,7 @@ private fun pattersonAlgorithm(cipher: LongArray, goppaCode: GoppaCode): LongArr
             inversePolys.add(
                 inverseModPoly(
                     Poly.create(
-                        ff2m, goppaCode.support[i].negate(), ff2m.one
+                        ff2m, support[i].negate(), ff2m.one
                     ), gPoly
 
                 )

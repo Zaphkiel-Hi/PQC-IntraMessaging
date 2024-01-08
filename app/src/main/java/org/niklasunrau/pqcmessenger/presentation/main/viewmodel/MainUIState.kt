@@ -14,8 +14,8 @@ data class MainUIState(
     val loggedInUser: User = User(),
     val loggedInUserSecretKeys: Map<Algorithm.Type, AsymmetricSecretKey> = mapOf(),
 
-    val idToChat: MutableMap<String, Chat> = mutableMapOf(),
-    val idToUser: MutableMap<String, User> = mutableMapOf(),
+    val idToChat: Map<String, Chat> = mapOf(),
+    val idToUser: Map<String, User> = mapOf(),
 
     val newChatUsername: String = "",
     val newChatError: UiText = UiText.DynamicString(""),

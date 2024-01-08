@@ -61,12 +61,10 @@ data class McEliecePublicKey(
 @Serializable
 data class GoppaCode(
     @Serializable(MatrixSerializer::class) val gMatrix: Array<LongArray>,
-    val support: List<@Serializable(ElementSerializer::class) UnivariatePolynomialZp64>,
     val gPoly: @Serializable(PolySerializer::class) UnivariatePolynomial<@Serializable(ElementSerializer::class) UnivariatePolynomialZp64>,
 ) {
     constructor() : this(
         Array(0) { LongArray(0) },
-        listOf<UnivariatePolynomialZp64>(),
         UnivariatePolynomial.create(Rings.GF(2, 1), UnivariatePolynomialZp64.zero(2))
     )
 
@@ -77,13 +75,11 @@ data class GoppaCode(
         other as GoppaCode
 
         if (!gMatrix.contentDeepEquals(other.gMatrix)) return false
-        if (support != other.support) return false
         return gPoly == other.gPoly
     }
 
     override fun hashCode(): Int {
         var result = gMatrix.contentDeepHashCode()
-        result = 31 * result + support.hashCode()
         result = 31 * result + gPoly.hashCode()
         return result
     }

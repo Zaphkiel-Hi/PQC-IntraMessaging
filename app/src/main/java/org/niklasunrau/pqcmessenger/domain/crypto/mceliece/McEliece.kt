@@ -17,6 +17,7 @@ object McEliece : AsymmetricAlgorithm<McElieceSecretKey, McEliecePublicKey>() {
     const val m = 8
     private const val t = 16
     val ff2m: FiniteField<Element> = GF(2, m)
+    val support = ff2m.iterator().asSequence().toList()
     val coeffRing: UnivariateRing<Poly<Element>> = UnivariateRing(ff2m)
 
     private val n = pow(2, m)
@@ -26,6 +27,9 @@ object McEliece : AsymmetricAlgorithm<McElieceSecretKey, McEliecePublicKey>() {
         val goppaCode = generateCode(n, m, t)
         val shuffleMatrix = generateShuffleMatrix(k)
         val permMatrix = generatePermMatrix(n)
+
+
+
 
 
         val sgMatrix = multiplyBinaryMatrices(shuffleMatrix, goppaCode.gMatrix)

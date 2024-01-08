@@ -20,6 +20,7 @@ import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.crypto.aes.AES
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
+import org.niklasunrau.pqcmessenger.domain.repository.ChatRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
 import org.niklasunrau.pqcmessenger.domain.util.Algorithm
 import org.niklasunrau.pqcmessenger.domain.util.Json.json
@@ -30,16 +31,15 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val chatRepository: ChatRepository
 
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUIState())
     val uiState = _uiState.asStateFlow()
 
     fun test() {
-        viewModelScope.launch {
 
-        }
     }
 
     fun onUsernameChange(username: String) {
