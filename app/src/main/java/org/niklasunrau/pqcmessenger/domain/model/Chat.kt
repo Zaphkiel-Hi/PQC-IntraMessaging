@@ -7,8 +7,7 @@ data class Chat(
     val id: String = "",
     val name: String = "",
     val icon: String = "",
-    val type: ChatType = ChatType.SINGLE,
-    val lastMessage: String = "",
+    val type: ChatType = ChatType.SINGLE
 ){
     constructor() : this(listOf())
 }

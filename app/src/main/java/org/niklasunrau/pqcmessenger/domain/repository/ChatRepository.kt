@@ -9,8 +9,5 @@ interface ChatRepository {
     suspend fun startNewChat(chat: Chat): String
 
     suspend fun getMessagesCollection(chatId: String): CollectionReference
-
-    suspend fun updateLastMessage(chatId: String, message: String)
-
     suspend fun sendMessage(chatId: String, message: Message)
 }

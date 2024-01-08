@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 Surface(
-                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface
                 ) {
                     NavHost(
                         navController = navController,

@@ -19,6 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,17 +29,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import coil.compose.AsyncImage
+import org.niklasunrau.pqcmessenger.data.test.AuthRepositoryTest
+import org.niklasunrau.pqcmessenger.data.test.ChatRepositoryTest
+import org.niklasunrau.pqcmessenger.data.test.UserRepositoryTest
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomScaffold
 import org.niklasunrau.pqcmessenger.presentation.composables.ReplyTextField
 import org.niklasunrau.pqcmessenger.presentation.main.viewmodel.MainViewModel
 import org.niklasunrau.pqcmessenger.presentation.util.Dimens.LargePadding
 import org.niklasunrau.pqcmessenger.presentation.util.Dimens.SmallPadding
-import org.niklasunrau.pqcmessenger.theme.PrimaryColor
-import org.niklasunrau.pqcmessenger.theme.SecondaryBackgroundColor
 
 @Composable
 fun SingleChatScreen(
@@ -47,12 +51,12 @@ fun SingleChatScreen(
     val chatListState = rememberLazyListState()
 
 
-    
+
 
     LaunchedEffect(key1 = Unit) {
         viewModel.initializeChat(chatId)
     }
-    LaunchedEffect(key1 = uiState.currentChatMessages){
+    LaunchedEffect(key1 = uiState.currentChatMessages) {
         chatListState.animateScrollToItem(chatListState.layoutInfo.totalItemsCount)
     }
     BackHandler {
@@ -71,38 +75,46 @@ fun SingleChatScreen(
                     .padding(SmallPadding)
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
             )
-            Text(text = uiState.idToChat[chatId]!!.name)
+            Text(
+                text = uiState.idToChat[chatId]!!.name,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
     }, navigationIcon = {
         IconButton(onClick = {
             viewModel.closeChat(chatId)
             onNavigateToChats()
         }) {
-            Icon(Icons.Filled.ArrowBack, null)
+            Icon(
+                Icons.Filled.ArrowBack, null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
     }, actions = { }, floatingActionButton = { }) { innerPadding ->
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(innerPadding), verticalArrangement = Arrangement.SpaceBetween
         ) {
             LazyColumn(
-                modifier = Modifier.weight(1f),
-                state = chatListState
+                modifier = Modifier.weight(1f), state = chatListState
             ) {
                 var prevAuthor: String? = null
                 items(uiState.currentChatMessages) { message ->
                     var alignment = Alignment.CenterStart
-                    var color = SecondaryBackgroundColor
+                    var backgroundColor = MaterialTheme.colorScheme.secondaryContainer
+                    var textColor = MaterialTheme.colorScheme.onSecondaryContainer
                     var topPadding = 8.dp
                     var startPadding = SmallPadding
                     var endPadding = LargePadding
                     if (message.fromId == uiState.loggedInUser.id) {
                         alignment = Alignment.CenterEnd
-                        color = PrimaryColor
+                        backgroundColor = MaterialTheme.colorScheme.primaryContainer
+                        textColor = MaterialTheme.colorScheme.onPrimaryContainer
                         startPadding = LargePadding
                         endPadding = SmallPadding
                     }
@@ -122,9 +134,9 @@ fun SingleChatScreen(
                             text = message.text,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(color)
+                                .background(backgroundColor)
                                 .padding(8.dp),
-                            color = Color.White,
+                            color = textColor,
                         )
                     }
 
@@ -133,22 +145,22 @@ fun SingleChatScreen(
             ReplyTextField(value = uiState.currentText,
                 onValueChange = { viewModel.onCurrentTextChange(it) },
                 onSendClicked = { viewModel.onSendSingleMessage(chatId, uiState.currentText) },
-                onAlgorithmClicked = { alg -> viewModel.onCurrentAlgChange(alg)})
+                onAlgorithmClicked = { alg -> viewModel.onCurrentAlgChange(alg) })
         }
     }
 }
-//
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun SingleChatPreview() {
-//    Surface(
-//        modifier = Modifier.fillMaxSize()
-//    ) {
-//        SingleChatScreen(
-//            chatId = "",
-//            onNavigateToChats = { },
-//            MainViewModel(AuthRepositoryTest(), UserRepositoryTest(), ChatRepositoryTest())
-//        )
-//    }
-//}
+
+@Preview(showBackground = true)
+@Composable
+fun SingleChatPreview() {
+    Surface(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        SingleChatScreen(
+            chatId = "", onNavigateToChats = { }, MainViewModel(
+                AuthRepositoryTest(), UserRepositoryTest(), ChatRepositoryTest(), savedStateHandle = SavedStateHandle(
+                )
+            )
+        )
+    }
+}

@@ -1,6 +1,5 @@
 package org.niklasunrau.pqcmessenger.presentation.main.viewmodel
 
-import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContactPage
 import androidx.compose.material.icons.filled.Home
@@ -59,6 +58,8 @@ class MainViewModel @Inject constructor(
             _uiState.update { it.copy(loggedInUser = currentUser) }
 
 
+            initKeys(savedStateHandle["password"])
+
             val chats = chatRepository.getUserChats(currentUser.id)
             val idToChat = mutableMapOf<String, Chat>()
             for (chat in chats) {
@@ -74,14 +75,12 @@ class MainViewModel @Inject constructor(
             _uiState.update { it.copy(idToChat = idToChat) }
 
 
-            initKeys(savedStateHandle["password"])
-
-
         }
     }
 
     private suspend fun initKeys(password: String?) {
         withContext(Dispatchers.Default) {
+            _uiState.update { it.copy(isLoading = true) }
             if (password.isNullOrEmpty()) return@withContext
             if (_uiState.value.loggedInUserSecretKeys.isNotEmpty()) return@withContext
 
@@ -93,7 +92,7 @@ class MainViewModel @Inject constructor(
                 val secretKey = json.decodeFromString<AsymmetricSecretKey>(decrypted)
                 secretKeys[type] = secretKey
             }
-            _uiState.update { it.copy(loggedInUserSecretKeys = secretKeys) }
+            _uiState.update { it.copy(loggedInUserSecretKeys = secretKeys, isLoading = false) }
         }
     }
 
@@ -226,47 +225,37 @@ class MainViewModel @Inject constructor(
 
     fun initializeChat(chatId: String) {
         viewModelScope.launch {
+            val messageCollection = chatRepository.getMessagesCollection(chatId)
+            val listener = messageCollection.addSnapshotListener { snapshot, e ->
+                if (e != null) return@addSnapshotListener
+                if (snapshot != null) {
+                    val newMessages = mutableListOf<DecryptedMessage>()
+                    for (change in snapshot.documentChanges) {
+                        val message = change.document.toObject<Message>()
+                        val algType = Algorithm.Type.valueOf(message.algorithm)
+                        val secretKey = _uiState.value.loggedInUserSecretKeys[algType]!!
+                        val asymmetricAlgorithm = Algorithm.map[algType]!!
+                        val symmetricKey = asymmetricAlgorithm.decrypt(
+                            message.encryptedKeys[_uiState.value.loggedInUser.id]!!.toBitArray(), secretKey
+                        ).toSecretKey()
+                        val decodedText = AES.decrypt(message.encryptedText, symmetricKey)
+                        newMessages.add(DecryptedMessage(message.fromId, decodedText, message.timestamp))
+                    }
+                    val allMessages = (_uiState.value.currentChatMessages + newMessages).sortedBy { it.timestamp }
+                    _uiState.update { it.copy(currentChatMessages = allMessages) }
+                }
+            }
+
             _uiState.update { mainUIState ->
-                mainUIState.copy(currentChatListener = chatRepository.getMessagesCollection(chatId)
-                    .addSnapshotListener { snapshot, e ->
-                        if (e != null) return@addSnapshotListener
-                        if (snapshot != null) {
-                            Log.d("TEST", _uiState.value.loggedInUserSecretKeys.toString())
-                            val newMessages = mutableListOf<DecryptedMessage>()
-                            for (change in snapshot.documentChanges) {
-                                val message = change.document.toObject<Message>()
-                                val algType = Algorithm.Type.valueOf(message.algorithm)
-                                val secretKey = _uiState.value.loggedInUserSecretKeys[algType]!!
-                                val asymmetricAlgorithm = Algorithm.map[algType]!!
-                                val symmetricKey = asymmetricAlgorithm.decrypt(
-                                    message.encryptedKeys[_uiState.value.loggedInUser.id]!!.toBitArray(), secretKey
-                                ).toSecretKey()
-                                val decodedText = AES.decrypt(message.encryptedText, symmetricKey)
-                                newMessages.add(DecryptedMessage(message.fromId, decodedText, message.timestamp))
-                            }
-                            val allMessages =
-                                (_uiState.value.currentChatMessages + newMessages).sortedBy { it.timestamp }
-                            _uiState.update { it.copy(currentChatMessages = allMessages) }
-                        }
-                    })
+                mainUIState.copy(currentChatListener = listener)
             }
         }
     }
 
     fun closeChat(chatId: String) {
-        val currentMessages = _uiState.value.currentChatMessages
-        val lastMessage = if (currentMessages.isNotEmpty()) currentMessages.last().text else ""
-        viewModelScope.launch {
-            chatRepository.updateLastMessage(
-                chatId, lastMessage
-            )
-        }
-        val chats = _uiState.value.idToChat.toMutableMap()
-        val newChat = chats[chatId]!!.copy(lastMessage = lastMessage)
-        chats.replace(chatId, newChat)
+        _uiState.value.currentChatListener!!.remove()
         _uiState.update {
-            it.copy(
-                idToChat = chats, currentText = "", currentChatListener = null, currentChatMessages = listOf()
+            it.copy(currentText = "", currentChatListener = null, currentChatMessages = listOf()
             )
         }
 

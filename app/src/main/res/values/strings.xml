@@ -30,4 +30,5 @@
     <string name="user_not_found">User not found</string>
     <string name="invalid_credentials">Username or password invalid</string>
     <string name="send">Send</string>
+    <string name="message">Message</string>
 </resources>

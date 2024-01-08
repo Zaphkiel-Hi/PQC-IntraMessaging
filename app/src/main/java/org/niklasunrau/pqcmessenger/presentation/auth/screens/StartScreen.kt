@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -28,21 +32,20 @@ import org.niklasunrau.pqcmessenger.presentation.util.Dimens.SmallPadding
 
 @Composable
 fun StartScreen(
-    onNavigateToLogIn: () -> Unit,
-    onNavigateToSignUp: () -> Unit,
-    viewModel: AuthViewModel = hiltViewModel()
+    onNavigateToLogIn: () -> Unit, onNavigateToSignUp: () -> Unit, viewModel: AuthViewModel = hiltViewModel()
 ) {
+    var text by remember {
+        mutableStateOf("")
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(MediumPadding),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(MediumPadding), horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(fraction = 0.4f),
-            contentAlignment = Alignment.Center
+                .fillMaxHeight(fraction = 0.4f), contentAlignment = Alignment.Center
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_icon),
@@ -53,11 +56,13 @@ fun StartScreen(
         Spacer(modifier = Modifier.height(MediumPadding))
         Text(
             text = stringResource(id = R.string.hello),
-            style = MaterialTheme.typography.displayLarge
+            style = MaterialTheme.typography.displayLarge,
+            color = MaterialTheme.colorScheme.onSurface
         )
         AutoSizeText(
             text = stringResource(id = R.string.welcome),
-            style = MaterialTheme.typography.headlineSmall
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(LargePadding))
 
@@ -74,11 +79,6 @@ fun StartScreen(
         CustomOutlinedButton(
             text = stringResource(id = R.string.signup),
             onClicked = onNavigateToSignUp,
-            modifier = Modifier.padding(horizontal = SmallPadding)
-        )
-        CustomOutlinedButton(
-            text = "TEST",
-            onClicked = { viewModel.test() },
             modifier = Modifier.padding(horizontal = SmallPadding)
         )
     }

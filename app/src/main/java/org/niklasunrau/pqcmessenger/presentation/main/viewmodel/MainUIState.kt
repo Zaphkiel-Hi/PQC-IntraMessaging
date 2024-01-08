@@ -10,6 +10,8 @@ import org.niklasunrau.pqcmessenger.presentation.util.DecryptedMessage
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
 
 data class MainUIState(
+    val isLoading: Boolean = false,
+
     val currentRoute: Route = Route.Chats,
     val loggedInUser: User = User(),
     val loggedInUserSecretKeys: Map<Algorithm.Type, AsymmetricSecretKey> = mapOf(),

@@ -19,7 +19,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -54,13 +53,15 @@ fun SignUpScreen(
             Icon(
                 imageVector = Icons.Filled.ArrowBack,
                 contentDescription = null,
-                tint = Color.Gray,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(30.dp)
             )
         }
         Spacer(modifier = Modifier.height(LargePadding))
         AutoSizeText(
-            text = stringResource(id = R.string.create_account), style = MaterialTheme.typography.displayMedium
+            text = stringResource(id = R.string.create_account),
+            style = MaterialTheme.typography.displayMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(Dimens.MediumPadding))
         LogInTextField(label = stringResource(id = R.string.username),
@@ -96,15 +97,13 @@ fun SignUpScreen(
                 viewModel.onConfirmPasswordChange(it)
             })
         Spacer(modifier = Modifier.height(Dimens.SmallPadding))
-        CustomFilledButton(
-            text = stringResource(id = R.string.signup),
+        CustomFilledButton(text = stringResource(id = R.string.signup),
             modifier = Modifier.fillMaxWidth(),
             onClicked = {
                 viewModel.signup(
                     onNavigateToMain
                 )
-            }
-        )
+            })
         Spacer(modifier = Modifier.weight(1f))
 
         CustomClickableText(

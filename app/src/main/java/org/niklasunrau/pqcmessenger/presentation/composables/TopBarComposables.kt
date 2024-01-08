@@ -35,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -45,8 +44,6 @@ import org.niklasunrau.pqcmessenger.R
 import org.niklasunrau.pqcmessenger.domain.util.Route
 import org.niklasunrau.pqcmessenger.presentation.util.Dimens
 import org.niklasunrau.pqcmessenger.presentation.util.NavigationItem
-import org.niklasunrau.pqcmessenger.theme.AccentColor
-import org.niklasunrau.pqcmessenger.theme.PrimaryColor
 
 
 @Composable
@@ -100,7 +97,8 @@ fun CustomNavigationDrawer(
                             icon = { Icon(imageVector = item.icon, contentDescription = null) },
                             selected = currentRoute == item.route,
                             colors = NavigationDrawerItemDefaults.colors(
-                                selectedContainerColor = AccentColor.copy(alpha = 0.7f)
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer
                             ),
                             onClick = {
                                 if (currentRoute != item.route) {
@@ -123,7 +121,7 @@ fun CustomNavigationDrawer(
         }) {
         CustomScaffold(
             title = {
-                Text(text = title, color = Color.White)
+                Text(text = title, color = MaterialTheme.colorScheme.onPrimaryContainer)
             },
             navigationIcon = {
                 IconButton(onClick = {
@@ -135,7 +133,7 @@ fun CustomNavigationDrawer(
                 }) {
                     Icon(
                         imageVector = Icons.Filled.Menu,
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         contentDescription = null
                     )
                 }
@@ -160,7 +158,7 @@ fun CustomScaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryColor
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
                 title = title,
                 navigationIcon = navigationIcon,

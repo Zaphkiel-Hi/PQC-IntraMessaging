@@ -2,9 +2,7 @@ package org.niklasunrau.pqcmessenger.presentation.main.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -48,12 +45,11 @@ import kotlinx.coroutines.launch
 import org.niklasunrau.pqcmessenger.R
 import org.niklasunrau.pqcmessenger.domain.util.ChatType
 import org.niklasunrau.pqcmessenger.domain.util.Route
+import org.niklasunrau.pqcmessenger.presentation.composables.CustomCircularProgress
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomFilledButton
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomNavigationDrawer
 import org.niklasunrau.pqcmessenger.presentation.main.viewmodel.MainViewModel
 import org.niklasunrau.pqcmessenger.presentation.util.Dimens.SmallPadding
-import org.niklasunrau.pqcmessenger.theme.AccentColor
-import org.niklasunrau.pqcmessenger.theme.PrimaryColor
 
 @Composable
 fun ChatsScreen(
@@ -82,7 +78,7 @@ fun ChatsScreen(
             }) {
                 Icon(
                     imageVector = Icons.Filled.Logout,
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     contentDescription = null
                 )
             }
@@ -93,13 +89,13 @@ fun ChatsScreen(
                     showAddDialog = true
                 },
                 shape = CircleShape,
-                containerColor = PrimaryColor,
+                containerColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = SmallPadding, end = SmallPadding)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Message,
                     contentDescription = null,
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -110,17 +106,18 @@ fun ChatsScreen(
                     viewModel.onUsernameChange("")
                     showAddDialog = false
                 },
-                titleContentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = MaterialTheme.colorScheme.onPrimary,
 
                 title = { Text(text = stringResource(R.string.start_new_chat)) },
                 text = {
                     OutlinedTextField(
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = AccentColor,
-                            cursorColor = AccentColor,
-                            focusedBorderColor = AccentColor,
-                            focusedLabelColor = AccentColor,
-                            focusedTextColor = Color.White
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                            cursorColor = MaterialTheme.colorScheme.onPrimary,
+                            focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                            focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            focusedTextColor = MaterialTheme.colorScheme.onPrimaryContainer
                         ),
                         label = { Text(text = stringResource(id = R.string.username)) },
                         maxLines = 1,
@@ -196,27 +193,16 @@ fun ChatsScreen(
                                         .padding(SmallPadding)
                                         .size(50.dp)
                                         .clip(CircleShape)
-                                        .background(Color.White)
+                                        .background(MaterialTheme.colorScheme.onSurface)
                                 )
-                                Column(
-                                    modifier = Modifier.padding(start = SmallPadding),
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Text(
-                                        text = otherUser.username,
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.titleLarge,
-                                    )
-                                    if(chat.lastMessage != "") {
-                                        Text(
-                                            text = chat.lastMessage,
-                                            color = Color.Gray,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                        )
-                                    }
-                                }
+                                Text(
+                                    text = otherUser.username,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+
                             }
-                        }else{
+                        } else {
                             TODO("groups chats")
                         }
                     }
@@ -226,4 +212,5 @@ fun ChatsScreen(
         }
 
     }
+    CustomCircularProgress(isDisplayed = uiState.isLoading, text = "Loading secret keys...")
 }
