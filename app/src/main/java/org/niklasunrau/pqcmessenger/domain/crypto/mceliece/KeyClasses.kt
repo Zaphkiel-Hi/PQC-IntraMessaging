@@ -11,12 +11,12 @@ import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 @Serializable
 @SerialName("McEliece")
 data class McElieceSecretKey(
-    @Serializable(MatrixSerializer::class) val shuffleInvMatrix: Array<LongArray>,
-    @Serializable(PermMatrixSerializer::class) val permInvMatrix: Array<LongArray>,
+    @Serializable(MatrixSerializer::class) val shuffleInvMatrix: Array<ByteArray>,
+    @Serializable(PermMatrixSerializer::class) val permInvMatrix: Array<ByteArray>,
     val goppaCode: GoppaCode
 ) : AsymmetricSecretKey() {
     @Suppress("unused")
-    constructor() : this(Array(0) { LongArray(0) }, Array(0) { LongArray(0) }, GoppaCode())
+    constructor() : this(Array(0) { ByteArray(0) }, Array(0) { ByteArray(0) }, GoppaCode())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -40,10 +40,10 @@ data class McElieceSecretKey(
 @Serializable
 @SerialName("McEliece")
 data class McEliecePublicKey(
-    @Serializable(MatrixSerializer::class) var publicMatrix: Array<LongArray>,
+    @Serializable(MatrixSerializer::class) var publicMatrix: Array<ByteArray>,
 ) : AsymmetricPublicKey() {
     @Suppress("unused")
-    constructor() : this(Array(0) { LongArray(0) })
+    constructor() : this(Array(0) { ByteArray(0) })
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -62,11 +62,11 @@ data class McEliecePublicKey(
 
 @Serializable
 data class GoppaCode(
-    @Serializable(MatrixSerializer::class) val gMatrix: Array<LongArray>,
+    @Serializable(MatrixSerializer::class) val gMatrix: Array<ByteArray>,
     val gPoly: @Serializable(PolySerializer::class) UnivariatePolynomial<@Serializable(ElementSerializer::class) UnivariatePolynomialZp64>,
 ) {
     constructor() : this(
-        Array(0) { LongArray(0) },
+        Array(0) { ByteArray(0) },
         UnivariatePolynomial.create(Rings.GF(2, 1), UnivariatePolynomialZp64.zero(2))
     )
 

@@ -4,9 +4,9 @@ import com.google.firebase.firestore.ListenerRegistration
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.model.Chat
 import org.niklasunrau.pqcmessenger.domain.model.User
+import org.niklasunrau.pqcmessenger.domain.model.local.LocalMessage
 import org.niklasunrau.pqcmessenger.domain.util.Algorithm
 import org.niklasunrau.pqcmessenger.domain.util.Route
-import org.niklasunrau.pqcmessenger.presentation.util.DecryptedMessage
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
 
 data class MainUIState(
@@ -24,7 +24,7 @@ data class MainUIState(
 
     val currentText: String = "",
     val currentAlg: Algorithm.Type = Algorithm.Type.MCELIECE,
-    val currentChatMessages: List<DecryptedMessage> = listOf(),
+    val currentChatMessages: List<LocalMessage> = listOf(),
     val currentChatListener: ListenerRegistration? = null
 
 

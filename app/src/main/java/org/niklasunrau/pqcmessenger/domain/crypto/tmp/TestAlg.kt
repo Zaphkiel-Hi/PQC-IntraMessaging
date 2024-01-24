@@ -18,11 +18,11 @@ object TestAlg : AsymmetricAlgorithm<SK, PK>() {
         return SK(1) to PK(2)
     }
 
-    override fun decrypt(cipher: LongArray, secretKey: AsymmetricSecretKey): LongArray {
+    override fun decrypt(cipher: ByteArray, secretKey: AsymmetricSecretKey): ByteArray {
         return cipher
     }
 
-    override fun encrypt(message: LongArray, publicKey: AsymmetricPublicKey): LongArray {
+    override fun encrypt(message: ByteArray, publicKey: AsymmetricPublicKey): ByteArray {
         return message
     }
 }

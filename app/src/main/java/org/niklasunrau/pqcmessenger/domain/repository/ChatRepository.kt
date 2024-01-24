@@ -9,5 +9,5 @@ interface ChatRepository {
     suspend fun startNewChat(chat: Chat): String
 
     suspend fun getMessagesCollection(chatId: String): CollectionReference
-    suspend fun sendMessage(chatId: String, message: Message)
+    suspend fun sendMessage(chatId: String, message: Message): String
 }

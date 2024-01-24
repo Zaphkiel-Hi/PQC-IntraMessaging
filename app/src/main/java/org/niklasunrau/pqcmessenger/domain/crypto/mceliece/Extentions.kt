@@ -1,6 +1,7 @@
 package org.niklasunrau.pqcmessenger.domain.crypto.mceliece
 
 import cc.redberry.rings.Ring
+import cc.redberry.rings.poly.univar.UnivariatePolynomial
 import com.google.common.math.IntMath
 import org.jetbrains.kotlinx.multik.api.d2arrayIndices
 import org.jetbrains.kotlinx.multik.api.identity
@@ -8,26 +9,25 @@ import org.jetbrains.kotlinx.multik.api.mk
 import org.jetbrains.kotlinx.multik.api.ndarray
 import org.jetbrains.kotlinx.multik.ndarray.data.D2
 import org.jetbrains.kotlinx.multik.ndarray.data.MultiArray
+import org.jetbrains.kotlinx.multik.ndarray.data.NDArray
+import org.jetbrains.kotlinx.multik.ndarray.data.asDNArray
 import org.jetbrains.kotlinx.multik.ndarray.data.get
 import org.jetbrains.kotlinx.multik.ndarray.data.set
 import org.jetbrains.kotlinx.multik.ndarray.operations.append
-import org.jetbrains.kotlinx.multik.ndarray.operations.toArray
-import org.jetbrains.kotlinx.multik.ndarray.operations.toLongArray
-import cc.redberry.rings.poly.univar.UnivariatePolynomial as Poly
-import cc.redberry.rings.poly.univar.UnivariatePolynomialZp64 as Element
+import kotlin.streams.toList
 
 
-operator fun <T> Poly<T>.plus(other: Poly<T>): Poly<T> = this.clone().add(other)
+operator fun Poly.plus(other: Poly): Poly = this.clone().add(other)
 
-operator fun <T> Poly<T>.minus(other: Poly<T>): Poly<T> = this.clone().subtract(other)
+operator fun Poly.minus(other: Poly): Poly = this.clone().subtract(other)
 
-operator fun <T> Poly<T>.times(other: Poly<T>): Poly<T> = this.clone().multiply(other)
+operator fun Poly.times(other: Poly): Poly = this.clone().multiply(other)
 
-operator fun <T> Poly<T>.unaryMinus(): Poly<T> = this.clone().negate()
+operator fun Poly.unaryMinus(): Poly = this.clone().negate()
 
-inline fun <reified T> Poly<T>.split(): Pair<Poly<T>, Poly<T>> {
-    var evenCoeffs = arrayOf<T>()
-    var oddCoeffs = arrayOf<T>()
+fun Poly.split(): Pair<Poly, Poly> {
+    var evenCoeffs = arrayOf<Element>()
+    var oddCoeffs = arrayOf<Element>()
     val sqrtExpo = IntMath.pow(2, ring.perfectPowerExponent().toInt() - 1)
 
     for (i in 0..size()) {
@@ -35,8 +35,8 @@ inline fun <reified T> Poly<T>.split(): Pair<Poly<T>, Poly<T>> {
         else oddCoeffs += ring.pow(get(i), sqrtExpo)
     }
 
-    val evenPoly = Poly.create(ring, *evenCoeffs)
-    val oddPoly = Poly.create(ring, *oddCoeffs)
+    val evenPoly = UnivariatePolynomial.create(ring, *evenCoeffs)
+    val oddPoly = UnivariatePolynomial.create(ring, *oddCoeffs)
 
     return evenPoly to oddPoly
 
@@ -47,37 +47,54 @@ fun Element.toBinary(): String {
 }
 
 
-
 fun Element.toInt(): Int {
     var bin = ""
     for (i in degree() downTo 0) bin += get(i)
     return bin.toInt(2)
 }
-fun <T> Ring<T>.identity(): Poly<T> {
-    return Poly.create(this, zero, one)
+
+fun Element.toBinaryColumn(width: Int): NDArray<Byte, D2> {
+    return mk.ndarray(listOf(lJustZerosList(this.stream().toList().map { it.toByte() }, width))).transpose()
 }
 
-fun MultiArray<Long, D2>.nullspace(): Array<LongArray> {
+fun Ring<Element>.identity(): Poly {
+    return UnivariatePolynomial.create(this, zero, one)
+}
+
+fun MultiArray<Byte, D2>.nullspace(): Array<ByteArray> {
+    // Finding the left kernel, so we transpose first to get the right one
     val newMatrix = this.transpose().copy()
     val (m, n) = newMatrix.shape
-    val identity = mk.identity<Long>(m)
+
+    // Append identy so we have [ A | I ]
+    val identity = mk.identity<Byte>(m)
     val toSolve = newMatrix.append(identity, 1)
-    val (inRREF, p) = toSolve.toArray().reducedRowEchelonForm(n)
-    val nullspace = mk.ndarray(inRREF)[p..<inRREF.size, n..<inRREF[0].size]
-    val (reducedNullspace, _) = nullspace.toArray().reducedRowEchelonForm()
-    return reducedNullspace
+
+    // Apply gaussian elimination to get [I | A^-1]
+    val (inRREF, p) = toSolve.reducedRowEchelonForm(n)
+
+    // Row reduce the left null space so that it begins with an I
+    val nullspace = inRREF[p..<inRREF.shape[0], n..<inRREF.shape[1]].asDNArray().asD2Array()
+    val (reducedNullspace, _) = nullspace.reducedRowEchelonForm()
+
+    return reducedNullspace.toArray()
 }
 
-fun Array<LongArray>.reducedRowEchelonForm(nCols: Int? = null): Pair<Array<LongArray>, Int> {
-    val rowCount = this.size
-    val colCount = this[0].size
+fun MultiArray<Byte, D2>.toArray(): Array<ByteArray> =
+    Array(shape[0]) { row ->
+        ByteArray(shape[1]) { col -> this[row][col] }
+    }
+
+
+fun NDArray<Byte, D2>.reducedRowEchelonForm(nCols: Int? = null): Pair<NDArray<Byte, D2>, Int> {
+    val (rowCount, colCount) = this.shape
     val numCols = nCols ?: colCount
 
-    val newMatrix = mk.ndarray(this)
+    val newMatrix = this.copy()
     var p = 0
 
     for (j in 0 until numCols) {
-        var indexes = nonZero(newMatrix[p..<rowCount, j].toLongArray())
+        var indexes = nonZero(newMatrix[p..<rowCount, j])
         if (indexes.isEmpty()) continue
 
         val i = p + indexes[0]
@@ -86,7 +103,7 @@ fun Array<LongArray>.reducedRowEchelonForm(nCols: Int? = null): Pair<Array<LongA
         newMatrix[i] = newMatrix[p]
         newMatrix[p] = temp
 
-        indexes = nonZero(newMatrix[0..<rowCount, j].toLongArray())
+        indexes = nonZero(newMatrix[0..<rowCount, j])
         indexes.remove(p)
         if (indexes.isNotEmpty()) {
 
@@ -98,12 +115,12 @@ fun Array<LongArray>.reducedRowEchelonForm(nCols: Int? = null): Pair<Array<LongA
             }
             for ((index, row) in indexes.withIndex()) {
                 for (col in 0 until colCount)
-                    newMatrix[row, col] = Math.floorMod(newMatrix[row, col] + outer[index, col], 2).toLong()
+                    newMatrix[row, col] = Math.floorMod(newMatrix[row, col] + outer[index, col], 2).toByte()
             }
         }
         p++
         if (p == rowCount)
             break
     }
-    return newMatrix.toArray() to p
+    return newMatrix to p
 }

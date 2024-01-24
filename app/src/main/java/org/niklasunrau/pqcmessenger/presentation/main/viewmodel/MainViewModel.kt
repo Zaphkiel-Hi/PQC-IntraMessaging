@@ -30,14 +30,15 @@ import org.niklasunrau.pqcmessenger.domain.crypto.toSecretKey
 import org.niklasunrau.pqcmessenger.domain.model.Chat
 import org.niklasunrau.pqcmessenger.domain.model.Message
 import org.niklasunrau.pqcmessenger.domain.model.User
+import org.niklasunrau.pqcmessenger.domain.model.local.LocalMessage
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.ChatRepository
+import org.niklasunrau.pqcmessenger.domain.repository.DBRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
 import org.niklasunrau.pqcmessenger.domain.util.Algorithm
 import org.niklasunrau.pqcmessenger.domain.util.ChatType
 import org.niklasunrau.pqcmessenger.domain.util.Json.json
 import org.niklasunrau.pqcmessenger.domain.util.Route
-import org.niklasunrau.pqcmessenger.presentation.util.DecryptedMessage
 import org.niklasunrau.pqcmessenger.presentation.util.NavigationItem
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
 import javax.inject.Inject
@@ -47,6 +48,7 @@ class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
     private val chatRepository: ChatRepository,
+    private val dbRepository: DBRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MainUIState())
@@ -215,10 +217,15 @@ class MainViewModel @Inject constructor(
         }
         val currentTime = System.currentTimeMillis()
         val message = Message(
-            state.loggedInUser.id, encryptedMessage, encryptedKeys, state.currentAlg.name, currentTime
+            fromId = state.loggedInUser.id,
+            encryptedText = encryptedMessage,
+            encryptedKeys = encryptedKeys,
+            algorithm = state.currentAlg.name,
+            timestamp = currentTime
         )
         viewModelScope.launch {
-            chatRepository.sendMessage(chatId, message)
+            val id = chatRepository.sendMessage(chatId, message)
+            dbRepository.saveMessage(LocalMessage(id, chatId, state.loggedInUser.id, text, currentTime))
         }
         _uiState.update { it.copy(currentText = "") }
     }
@@ -226,36 +233,56 @@ class MainViewModel @Inject constructor(
     fun initializeChat(chatId: String) {
         viewModelScope.launch {
             val messageCollection = chatRepository.getMessagesCollection(chatId)
+            val localMessages = viewModelScope.async { dbRepository.loadMessages(chatId) }.await()
+            _uiState.update { it.copy(currentChatMessages = localMessages) }
+
             val listener = messageCollection.addSnapshotListener { snapshot, e ->
                 if (e != null) return@addSnapshotListener
                 if (snapshot != null) {
-                    val newMessages = mutableListOf<DecryptedMessage>()
+                    val newMessages = mutableListOf<LocalMessage>()
                     for (change in snapshot.documentChanges) {
                         val message = change.document.toObject<Message>()
-                        val algType = Algorithm.Type.valueOf(message.algorithm)
-                        val secretKey = _uiState.value.loggedInUserSecretKeys[algType]!!
-                        val asymmetricAlgorithm = Algorithm.map[algType]!!
-                        val symmetricKey = asymmetricAlgorithm.decrypt(
-                            message.encryptedKeys[_uiState.value.loggedInUser.id]!!.toBitArray(), secretKey
-                        ).toSecretKey()
-                        val decodedText = AES.decrypt(message.encryptedText, symmetricKey)
-                        newMessages.add(DecryptedMessage(message.fromId, decodedText, message.timestamp))
+                        if (!_uiState.value.currentChatMessages.any { it.messageId == message.id }) {
+                            val decodedMessage = message.decodeToLocalMessage(chatId)
+                            newMessages.add(decodedMessage)
+                            viewModelScope.launch {
+                                dbRepository.saveMessage(decodedMessage)
+                            }
+                        }
                     }
                     val allMessages = (_uiState.value.currentChatMessages + newMessages).sortedBy { it.timestamp }
                     _uiState.update { it.copy(currentChatMessages = allMessages) }
+
                 }
             }
-
             _uiState.update { mainUIState ->
                 mainUIState.copy(currentChatListener = listener)
             }
         }
     }
 
-    fun closeChat(chatId: String) {
+    private fun Message.decodeToLocalMessage(chatId: String): LocalMessage {
+        val algType = Algorithm.Type.valueOf(algorithm)
+        val secretKey = _uiState.value.loggedInUserSecretKeys[algType]!!
+        val asymmetricAlgorithm = Algorithm.map[algType]!!
+        val symmetricKey = asymmetricAlgorithm.decrypt(
+            encryptedKeys[_uiState.value.loggedInUser.id]!!.toBitArray(), secretKey
+        ).toSecretKey()
+        val decodedText = AES.decrypt(encryptedText, symmetricKey)
+        return LocalMessage(
+            id,
+            chatId,
+            fromId,
+            decodedText,
+            timestamp
+        )
+    }
+
+    fun closeChat() {
         _uiState.value.currentChatListener!!.remove()
         _uiState.update {
-            it.copy(currentText = "", currentChatListener = null, currentChatMessages = listOf()
+            it.copy(
+                currentText = "", currentChatListener = null, currentChatMessages = listOf()
             )
         }
 

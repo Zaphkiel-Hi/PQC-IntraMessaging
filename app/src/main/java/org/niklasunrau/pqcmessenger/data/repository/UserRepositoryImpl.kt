@@ -1,6 +1,5 @@
 package org.niklasunrau.pqcmessenger.data.repository
 
-import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
@@ -13,14 +12,14 @@ class UserRepositoryImpl @Inject constructor(
 ) : UserRepository {
 
     override suspend fun getUserById(uid: String): User? {
-        Log.d("API", "getUserById Call")
+        //Log.d("API", "getUserById Call")
         val result = firestore.collection(USER_COLLECTION).document(uid).get().await()
         return if (result.exists()) result.toObject<User>() else null
 
     }
 
     override suspend fun getUserByUsername(username: String): User? {
-        Log.d("API", "getUserByUsername Call")
+        //Log.d("API", "getUserByUsername Call")
         val result = firestore.collection(USER_COLLECTION).whereEqualTo(USERNAME_FIELD, username).get().await()
         return if (result.isEmpty) null else result.toObjects(User::class.java)[0]
 
@@ -28,12 +27,12 @@ class UserRepositoryImpl @Inject constructor(
 
 
     override suspend fun createUser(user: User) {
-        Log.d("API", "createUser Call")
+        //Log.d("API", "createUser Call")
         firestore.collection(USER_COLLECTION).document(user.id).set(user)
     }
 
     override suspend fun isUsernameInUse(username: String): Boolean {
-        Log.d("API", "isUsernameInUse Call")
+        //Log.d("API", "isUsernameInUse Call")
         return !firestore.collection(USER_COLLECTION).whereEqualTo(USERNAME_FIELD, username).get().await().isEmpty
     }
 

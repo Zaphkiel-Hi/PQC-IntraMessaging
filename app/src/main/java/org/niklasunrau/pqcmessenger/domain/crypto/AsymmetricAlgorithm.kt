@@ -10,7 +10,7 @@ abstract class AsymmetricAlgorithm <out S : AsymmetricSecretKey, out P : Asymmet
 
 
     abstract suspend fun generateKeyPair() : Pair<S, P>
-    abstract fun encrypt(message: LongArray, publicKey: AsymmetricPublicKey): LongArray
-    abstract fun decrypt(cipher: LongArray, secretKey: AsymmetricSecretKey): LongArray
+    abstract fun encrypt(message: ByteArray, publicKey: AsymmetricPublicKey): ByteArray
+    abstract fun decrypt(cipher: ByteArray, secretKey: AsymmetricSecretKey): ByteArray
 
 }

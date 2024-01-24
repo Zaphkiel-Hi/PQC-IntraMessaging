@@ -15,6 +15,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -53,7 +54,7 @@ class MainActivity : ComponentActivity() {
                 appViewModel.logoutPotentialUser()
 
                 fun NavOptionsBuilder.popUpToTop(navController: NavController) {
-                    popUpTo(navController.currentBackStackEntry?.destination?.route ?: return) {
+                    popUpTo(navController.graph.findStartDestination().id) {
                         inclusive = true
                     }
                 }
@@ -61,9 +62,7 @@ class MainActivity : ComponentActivity() {
                 fun navigateTo(
                     route: Route, withPopUp: Boolean = false, argumentName: String? = null, argumentValue: String = ""
                 ) {
-                    val argument = if (argumentName != null) {
-                        "?$argumentName=$argumentValue"
-                    } else ""
+                    val argument = if (argumentName != null) { "?$argumentName=$argumentValue" } else ""
                     navController.navigate(route.name + argument) {
                         if (withPopUp) popUpToTop(navController)
                     }

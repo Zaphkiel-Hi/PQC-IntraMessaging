@@ -36,6 +36,7 @@ import androidx.lifecycle.SavedStateHandle
 import coil.compose.AsyncImage
 import org.niklasunrau.pqcmessenger.data.test.AuthRepositoryTest
 import org.niklasunrau.pqcmessenger.data.test.ChatRepositoryTest
+import org.niklasunrau.pqcmessenger.data.test.DBRepositoryTest
 import org.niklasunrau.pqcmessenger.data.test.UserRepositoryTest
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomScaffold
 import org.niklasunrau.pqcmessenger.presentation.composables.ReplyTextField
@@ -60,7 +61,7 @@ fun SingleChatScreen(
         chatListState.animateScrollToItem(chatListState.layoutInfo.totalItemsCount)
     }
     BackHandler {
-        viewModel.closeChat(chatId)
+        viewModel.closeChat()
         onNavigateToChats()
     }
 
@@ -86,7 +87,7 @@ fun SingleChatScreen(
         }
     }, navigationIcon = {
         IconButton(onClick = {
-            viewModel.closeChat(chatId)
+            viewModel.closeChat()
             onNavigateToChats()
         }) {
             Icon(
@@ -158,7 +159,11 @@ fun SingleChatPreview() {
     ) {
         SingleChatScreen(
             chatId = "", onNavigateToChats = { }, MainViewModel(
-                AuthRepositoryTest(), UserRepositoryTest(), ChatRepositoryTest(), savedStateHandle = SavedStateHandle(
+                AuthRepositoryTest(),
+                UserRepositoryTest(),
+                ChatRepositoryTest(),
+                DBRepositoryTest(),
+                savedStateHandle = SavedStateHandle(
                 )
             )
         )

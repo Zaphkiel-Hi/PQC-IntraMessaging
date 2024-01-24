@@ -19,7 +19,7 @@ class ChatRepositoryTest : ChatRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun sendMessage(chatId: String, message: Message) {
+    override suspend fun sendMessage(chatId: String, message: Message): String {
         TODO("Not yet implemented")
     }
 }

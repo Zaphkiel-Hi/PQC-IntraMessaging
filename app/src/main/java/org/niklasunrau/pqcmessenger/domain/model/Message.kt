@@ -1,6 +1,7 @@
 package org.niklasunrau.pqcmessenger.domain.model
 
 data class Message(
+    val id: String = "",
     val fromId: String,
     val encryptedText: String,
     val encryptedKeys: Map<String, String>,
@@ -8,5 +9,5 @@ data class Message(
     val timestamp: Long
 ) {
     @Suppress("unused")
-    constructor() : this("", "", mapOf(), "", 0L)
+    constructor() : this("", "", "", mapOf(), "", 0L)
 }

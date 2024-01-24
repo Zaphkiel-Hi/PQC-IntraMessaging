@@ -40,6 +40,7 @@ class AuthViewModel @Inject constructor(
 
     }
 
+
     fun onEmailChange(email: String) {
         _uiState.update { it.copy(email = email, emailError = UiText.DynamicString("")) }
     }

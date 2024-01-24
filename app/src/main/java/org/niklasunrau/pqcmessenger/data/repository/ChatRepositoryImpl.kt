@@ -1,6 +1,5 @@
 package org.niklasunrau.pqcmessenger.data.repository
 
-import android.util.Log
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -14,27 +13,28 @@ class ChatRepositoryImpl @Inject constructor(
 ) : ChatRepository {
 
     override suspend fun getUserChats(uid: String): List<Chat> {
-        Log.d("API", "getUserChats Call")
+        //Log.d("API", "getUserChats Call")
         return firestore.collection(CHAT_COLLECTION).whereArrayContains(USERS_FIELD, uid).get()
             .await().toObjects(Chat::class.java)
     }
 
     override suspend fun startNewChat(chat: Chat): String {
-        Log.d("API", "startNewChat Call")
+        //Log.d("API", "startNewChat Call")
         val newDoc = firestore.collection(CHAT_COLLECTION).document()
         newDoc.set(chat.copy(id = newDoc.id))
         return newDoc.id
     }
 
     override suspend fun getMessagesCollection(chatId: String): CollectionReference {
-        Log.d("API", "getMessagesCollection Call")
+        //Log.d("API", "getMessagesCollection Call")
         return firestore.collection(CHAT_COLLECTION).document(chatId).collection(MESSAGES_COLLECTION)
     }
 
-    override suspend fun sendMessage(chatId: String, message: Message) {
-        Log.d("API", "sendMessage Call")
-        firestore.collection(CHAT_COLLECTION).document(chatId).collection(MESSAGES_COLLECTION)
-            .add(message)
+    override suspend fun sendMessage(chatId: String, message: Message): String {
+        //Log.d("API", "sendMessage Call")
+        val newDoc = firestore.collection(CHAT_COLLECTION).document(chatId).collection(MESSAGES_COLLECTION).document()
+        newDoc.set(message.copy(id = newDoc.id))
+        return newDoc.id
     }
 
     companion object {

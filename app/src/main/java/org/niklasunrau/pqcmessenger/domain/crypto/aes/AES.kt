@@ -81,6 +81,4 @@ object AES {
         cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(TAG_LENGTH, iv))
         return cipher.doFinal(content).toString(CHARSET)
     }
-
-
 }
