@@ -24,7 +24,8 @@ fun CustomFilledButton(
         },
         modifier = modifier.heightIn(48.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
         ),
     ) {
         Text(text = text, style = TextStyle(fontSize = 20.sp))

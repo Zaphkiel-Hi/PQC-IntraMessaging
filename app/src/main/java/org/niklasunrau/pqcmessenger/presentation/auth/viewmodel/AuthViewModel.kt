@@ -6,9 +6,13 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
@@ -29,17 +33,22 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val userRepository: UserRepository
+    private val authRepository: AuthRepository, private val userRepository: UserRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUIState())
     val uiState = _uiState.asStateFlow()
+
+    private val _showSignInToast = MutableSharedFlow<Boolean>()
+    val showSignInToast = _showSignInToast.asSharedFlow()
+
+    private val _showVerificationNeededToast = MutableSharedFlow<Boolean>()
+    val showVerificationNeededToast = _showVerificationNeededToast.asSharedFlow()
+
 
     fun onUsernameChange(username: String) {
         _uiState.update { it.copy(username = username, usernameError = UiText.DynamicString("")) }
 
     }
-
 
     fun onEmailChange(email: String) {
         _uiState.update { it.copy(email = email, emailError = UiText.DynamicString("")) }
@@ -127,7 +136,19 @@ class AuthViewModel @Inject constructor(
 
                     is Status.Success -> {
                         _uiState.update { it.copy(isLoading = false) }
-                        onNavigateToHome(password)
+                        if (authRepository.currentUser!!.isEmailVerified) {
+                            onNavigateToHome(password)
+                        } else {
+                            _uiState.update {
+                                it.copy(
+                                    usernameError = UiText.DynamicString(""),
+                                    passwordError = UiText.DynamicString("")
+
+                                )
+                            }
+                            _showVerificationNeededToast.emit(true)
+                            authRepository.signOut()
+                        }
                     }
                 }
             }
@@ -136,7 +157,7 @@ class AuthViewModel @Inject constructor(
 
 
     fun signup(
-        onNavigateToHome: (String) -> Unit
+        onNavigateToLogin: () -> Unit
     ) {
         val username = _uiState.value.username
         val email = _uiState.value.email
@@ -159,7 +180,7 @@ class AuthViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             if (userRepository.isUsernameInUse(username)) {
                 _uiState.update { currentState ->
                     currentState.copy(
@@ -195,8 +216,11 @@ class AuthViewModel @Inject constructor(
                         }
                     }
 
-
                     is Status.Success -> {
+
+                        authRepository.currentUser!!.sendEmailVerification()
+
+
                         val mapEncryptedSKs = mutableMapOf<String, String>()
                         val mapPKs = mutableMapOf<String, String>()
                         for ((name, alg) in Algorithm.map) {
@@ -219,13 +243,14 @@ class AuthViewModel @Inject constructor(
                                 publicKeys = mapPKs
                             )
                         )
-                        _uiState.update { it.copy(isLoading = false) }
-                        onNavigateToHome(password)
-                    }
 
+                        _uiState.update { it.copy(isLoading = false) }
+                        onNavigateToLogin()
+                        delay(2000)
+                        _showSignInToast.emit(true)
+                    }
                 }
             }
-
         }
     }
 }

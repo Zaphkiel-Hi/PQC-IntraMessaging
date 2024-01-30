@@ -77,11 +77,13 @@ fun MessengerTheme(
     useDarkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colors = if (!useDarkTheme) {
-        LightColors
-    } else {
-        DarkColors
-    }
+    // TODO(Change in the future)
+//    val colors = if (!useDarkTheme) {
+//        LightColors
+//    } else {
+//        DarkColors
+//    }
+    val colors = DarkColors
 
     MaterialTheme(
         colorScheme = colors,

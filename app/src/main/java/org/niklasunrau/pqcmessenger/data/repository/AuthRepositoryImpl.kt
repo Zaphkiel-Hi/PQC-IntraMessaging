@@ -2,6 +2,7 @@ package org.niklasunrau.pqcmessenger.data.repository
 
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -13,6 +14,8 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth
 ) : AuthRepository {
+    override val currentUser: FirebaseUser?
+        get() = auth.currentUser
 
     override val currentUserId: String
         get() = auth.currentUser?.uid.orEmpty()
@@ -39,6 +42,8 @@ class AuthRepositoryImpl @Inject constructor(
             emit(Status.Error(it))
         }
     }
+
+
     override fun signOut() {
          auth.signOut()
     }

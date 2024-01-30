@@ -30,4 +30,6 @@
     <string name="user_not_found">User not found</string>
     <string name="invalid_credentials">Username or password invalid</string>
     <string name="message">Message</string>
+    <string name="sucessfully_registered">Successfully registered. Verify your email and login!</string>
+    <string name="email_not_verified">You need to verify your email!</string>
 </resources>

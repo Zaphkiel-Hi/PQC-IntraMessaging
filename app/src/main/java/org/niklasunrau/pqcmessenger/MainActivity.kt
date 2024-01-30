@@ -106,10 +106,10 @@ class MainActivity : ComponentActivity() {
                                 SignUpScreen(
                                     onNavigateToStart = { navigateTo(Route.Start) },
                                     onNavigateToLogIn = { navigateTo(Route.LogIn) },
-                                    onNavigateToMain = { password ->
-                                        navigateTo(Route.Main, true, "password", password)
-                                        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-                                    },
+//                                    onNavigateToMain = { password ->
+//                                        navigateTo(Route.Main, true, "password", password)
+//                                        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+//                                    },
                                     viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
                                 )
                             }

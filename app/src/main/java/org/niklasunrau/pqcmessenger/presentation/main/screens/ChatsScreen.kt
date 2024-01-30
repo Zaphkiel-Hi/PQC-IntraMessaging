@@ -106,17 +106,17 @@ fun ChatsScreen(
                     viewModel.onUsernameChange("")
                     showAddDialog = false
                 },
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
 
                 title = { Text(text = stringResource(R.string.start_new_chat)) },
                 text = {
                     OutlinedTextField(
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary,
-                            cursorColor = MaterialTheme.colorScheme.onPrimary,
-                            focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
-                            focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            focusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             focusedTextColor = MaterialTheme.colorScheme.onPrimaryContainer
                         ),
                         label = { Text(text = stringResource(id = R.string.username)) },
