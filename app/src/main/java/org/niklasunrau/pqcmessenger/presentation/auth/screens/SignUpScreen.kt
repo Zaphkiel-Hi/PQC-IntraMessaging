@@ -106,8 +106,12 @@ fun SignUpScreen(
 
         CustomClickableText(
             modifier = Modifier.align(Alignment.CenterHorizontally), textBlocks = listOf(
-                stringResource(id = R.string.already_account) + " ", stringResource(id = R.string.login)
-            ), onClicks = listOf(onNavigateToLogIn)
+                stringResource(id = R.string.already_account) + " ",
+                stringResource(id = R.string.login)
+            ), onClicks = listOf {
+                viewModel.clearErrors()
+                onNavigateToLogIn()
+            }
         )
     }
     CustomCircularProgress(isDisplayed = uiState.isLoading)

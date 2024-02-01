@@ -32,4 +32,8 @@
     <string name="message">Message</string>
     <string name="sucessfully_registered">Successfully registered. Verify your email and login!</string>
     <string name="email_not_verified">You need to verify your email!</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="sure_to_delete">Are you sure you want to delete your account?</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
 </resources>

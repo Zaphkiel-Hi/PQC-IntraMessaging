@@ -75,7 +75,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material:material-icons-extended:1.5.4")
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
     implementation("androidx.compose.material3:material3:1.1.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     testImplementation("junit:junit:4.13.2")
@@ -84,9 +84,9 @@ dependencies {
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:1.5.4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.0")
 
-    implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.0")
 
     implementation("com.google.android.material:material:1.11.0")
 
@@ -112,12 +112,12 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 
 
-    val room_version = "2.6.1"
-    implementation("androidx.room:room-runtime:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
 
-    kapt("androidx.room:room-compiler:$room_version")
-    implementation("androidx.room:room-ktx:$room_version")
+    kapt("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
 
 }
 

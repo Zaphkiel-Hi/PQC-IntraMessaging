@@ -289,5 +289,9 @@ class MainViewModel @Inject constructor(
 
     }
 
+    fun selectImage() {
+
+    }
+
 
 }

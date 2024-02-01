@@ -126,7 +126,10 @@ fun LogInScreen(
                 stringResource(id = R.string.no_account) + " ",
                 stringResource(id = R.string.signup)
             ),
-            onClicks = listOf(onNavigateToSignUp)
+            onClicks = listOf {
+                viewModel.clearErrors()
+                onNavigateToSignUp()
+            }
         )
     }
     CustomCircularProgress(isDisplayed = uiState.isLoading)

@@ -66,6 +66,15 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun clearErrors(){
+        _uiState.update { it.copy(
+            usernameError = UiText.DynamicString(""),
+            emailError = UiText.DynamicString(""),
+            passwordError = UiText.DynamicString(""),
+            confirmPasswordError = UiText.DynamicString(""),
+        ) }
+    }
+
     private fun isTextFieldsValid(type: String): Boolean {
         val usernameValid = _uiState.value.username.isNotBlank()
         val emailValid = _uiState.value.email.isNotBlank()
@@ -246,7 +255,7 @@ class AuthViewModel @Inject constructor(
 
                         _uiState.update { it.copy(isLoading = false) }
                         onNavigateToLogin()
-                        delay(2000)
+                        delay(1000)
                         _showSignInToast.emit(true)
                     }
                 }
