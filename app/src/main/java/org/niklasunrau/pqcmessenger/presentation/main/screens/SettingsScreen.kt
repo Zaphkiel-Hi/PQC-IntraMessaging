@@ -1,6 +1,10 @@
 package org.niklasunrau.pqcmessenger.presentation.main.screens
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
@@ -16,9 +20,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,9 +37,9 @@ import org.niklasunrau.pqcmessenger.data.test.DBRepositoryTest
 import org.niklasunrau.pqcmessenger.data.test.UserRepositoryTest
 import org.niklasunrau.pqcmessenger.domain.util.Route
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomNavigationDrawer
-import org.niklasunrau.pqcmessenger.presentation.composables.SettingsButton
 import org.niklasunrau.pqcmessenger.presentation.main.viewmodel.MainViewModel
 import org.niklasunrau.pqcmessenger.theme.MessengerTheme
+
 
 @Composable
 fun SettingsScreen(
@@ -43,7 +47,7 @@ fun SettingsScreen(
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     var showDeleteDialog by remember {
         mutableStateOf(false)
@@ -73,7 +77,7 @@ fun SettingsScreen(
                     dismissButton = {
                         Button(
                             onClick = {
-
+                                showDeleteDialog = false
                             },
                             modifier = Modifier.heightIn(48.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -87,7 +91,22 @@ fun SettingsScreen(
                     confirmButton = {
                         Button(
                             onClick = {
+                                val mIntent = Intent(Intent.ACTION_SEND)
+                                mIntent.setDataAndType(Uri.parse("mailto:"),"text/plain")
+                                mIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf("unrau73.wu@gmail.com"))
+                                mIntent.putExtra(Intent.EXTRA_SUBJECT, "deletion request")
+                                mIntent.putExtra(Intent.EXTRA_TEXT, "Username:\nPassword:")
+                                try{
+                                    context.startActivity(mIntent)
+                                }catch(ex: ActivityNotFoundException) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.no_app_available_to_send_email),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
 
+                                showDeleteDialog = false
                             },
                             modifier = Modifier.heightIn(48.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -100,7 +119,7 @@ fun SettingsScreen(
                     }
                 )
             }
-            SettingsButton(text = stringResource(id = R.string.delete_account), onClicked = {})
+//            SettingsButton(text = stringResource(id = R.string.delete_account), onClicked = {showDeleteDialog = true})
         }
     }
 }

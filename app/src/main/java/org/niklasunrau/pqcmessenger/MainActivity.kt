@@ -26,7 +26,6 @@ import androidx.navigation.navigation
 import dagger.hilt.android.AndroidEntryPoint
 import org.niklasunrau.pqcmessenger.domain.util.Route
 import org.niklasunrau.pqcmessenger.presentation.auth.screens.LogInScreen
-import org.niklasunrau.pqcmessenger.presentation.auth.screens.ResetPasswordScreen
 import org.niklasunrau.pqcmessenger.presentation.auth.screens.SignUpScreen
 import org.niklasunrau.pqcmessenger.presentation.auth.screens.StartScreen
 import org.niklasunrau.pqcmessenger.presentation.auth.viewmodel.AuthViewModel
@@ -91,7 +90,7 @@ class MainActivity : ComponentActivity() {
                             composable(Route.LogIn.name) {
                                 LogInScreen(
                                     onNavigateToStart = { navigateTo(Route.Start) },
-                                    onNavigateToResetPassword = { navigateTo(Route.ResetPassword) },
+//                                    onNavigateToResetPassword = { navigateTo(Route.ResetPassword) },
                                     onNavigateToSignUp = { navigateTo(Route.SignUp) },
                                     onNavigateToMain = { password ->
                                         navigateTo(Route.Main, true, "password", password)
@@ -113,9 +112,9 @@ class MainActivity : ComponentActivity() {
                                     viewModel = it.sharedViewModel<AuthViewModel>(navController = navController)
                                 )
                             }
-                            composable(Route.ResetPassword.name) {
-                                ResetPasswordScreen()
-                            }
+//                            composable(Route.ResetPassword.name) {
+//                                ResetPasswordScreen()
+//                            }
 
                         }
                         navigation(

@@ -285,8 +285,6 @@ class MainViewModel @Inject constructor(
                 currentText = "", currentChatListener = null, currentChatMessages = listOf()
             )
         }
-
-
     }
 
     fun selectImage() {

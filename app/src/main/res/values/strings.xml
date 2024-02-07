@@ -36,4 +36,5 @@
     <string name="sure_to_delete">Are you sure you want to delete your account?</string>
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
+    <string name="no_app_available_to_send_email">No app available to send email!</string>
 </resources>

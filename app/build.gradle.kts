@@ -16,8 +16,8 @@ android {
         applicationId = "org.niklasunrau.pqcmessenger"
         minSdk = 31
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -76,7 +76,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
-    implementation("androidx.compose.material3:material3:1.1.2")
+//    implementation("androidx.compose.material3:material3:1.1.2")
+    implementation("androidx.compose.material3:material3-android:1.2.0-rc01")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

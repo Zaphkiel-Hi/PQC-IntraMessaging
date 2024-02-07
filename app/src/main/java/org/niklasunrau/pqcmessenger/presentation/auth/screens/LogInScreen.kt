@@ -38,7 +38,7 @@ import org.niklasunrau.pqcmessenger.presentation.util.Dimens.MediumPadding
 @Composable
 fun LogInScreen(
     onNavigateToStart: () -> Unit,
-    onNavigateToResetPassword: () -> Unit,
+//    onNavigateToResetPassword: () -> Unit,
     onNavigateToSignUp: () -> Unit,
     onNavigateToMain: (String) -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
@@ -105,12 +105,12 @@ fun LogInScreen(
                 viewModel.onPasswordChange(it)
             }
         )
-        CustomClickableText(
-            textBlocks = listOf(stringResource(id = R.string.reset_password)),
-            modifier = Modifier.align(Alignment.End),
-            onClicks = listOf(onNavigateToResetPassword),
-            firstClickableIsSecond = false
-        )
+//        CustomClickableText(
+//            textBlocks = listOf(stringResource(id = R.string.reset_password)),
+//            modifier = Modifier.align(Alignment.End),
+//            onClicks = listOf(onNavigateToResetPassword),
+//            firstClickableIsSecond = false
+//        )
         Spacer(modifier = Modifier.height(LargePadding))
         CustomFilledButton(
             text = stringResource(id = R.string.login),
