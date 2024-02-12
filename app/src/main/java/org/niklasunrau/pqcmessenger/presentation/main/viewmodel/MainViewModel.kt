@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.niklasunrau.pqcmessenger.R
+import org.niklasunrau.pqcmessenger.domain.crypto.Algorithm
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricPublicKey
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.crypto.aes.AES
@@ -35,7 +36,6 @@ import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.ChatRepository
 import org.niklasunrau.pqcmessenger.domain.repository.DBRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
-import org.niklasunrau.pqcmessenger.domain.util.Algorithm
 import org.niklasunrau.pqcmessenger.domain.util.ChatType
 import org.niklasunrau.pqcmessenger.domain.util.Json.json
 import org.niklasunrau.pqcmessenger.domain.util.Route

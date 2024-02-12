@@ -18,6 +18,8 @@ typealias Element = UnivariatePolynomialZp64
 typealias Poly = UnivariatePolynomial<Element>
 
 object McEliece : AsymmetricAlgorithm<McElieceSecretKey, McEliecePublicKey>() {
+    override val name = "McEliece"
+
     private const val m = 8
     private const val t = 16
     val ff2m: FiniteField<Element> = GF(2, m)

@@ -19,13 +19,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import org.niklasunrau.pqcmessenger.R
+import org.niklasunrau.pqcmessenger.domain.crypto.Algorithm
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricPublicKey
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.crypto.aes.AES
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.repository.AuthRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
-import org.niklasunrau.pqcmessenger.domain.util.Algorithm
 import org.niklasunrau.pqcmessenger.domain.util.Json.json
 import org.niklasunrau.pqcmessenger.domain.util.Status
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
@@ -232,15 +232,20 @@ class AuthViewModel @Inject constructor(
 
                         val mapEncryptedSKs = mutableMapOf<String, String>()
                         val mapPKs = mutableMapOf<String, String>()
-                        for ((name, alg) in Algorithm.map) {
+
+                        for ((type, alg) in Algorithm.map) {
+
                             val (secretKey, publicKey) = viewModelScope.async {
                                 alg.generateKeyPair()
                             }.await()
+
                             val stringSK = json.encodeToString<AsymmetricSecretKey>(secretKey)
                             val stringPK = json.encodeToString<AsymmetricPublicKey>(publicKey)
+
                             val encryptedSK = AES.encrypt(stringSK, password)
-                            mapEncryptedSKs[name.name] = encryptedSK
-                            mapPKs[name.name] = stringPK
+
+                            mapEncryptedSKs[type.name] = encryptedSK
+                            mapPKs[type.name] = stringPK
                         }
 
                         userRepository.createUser(

@@ -5,7 +5,7 @@ import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.model.Chat
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.model.local.LocalMessage
-import org.niklasunrau.pqcmessenger.domain.util.Algorithm
+import org.niklasunrau.pqcmessenger.domain.crypto.Algorithm
 import org.niklasunrau.pqcmessenger.domain.util.Route
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
 
