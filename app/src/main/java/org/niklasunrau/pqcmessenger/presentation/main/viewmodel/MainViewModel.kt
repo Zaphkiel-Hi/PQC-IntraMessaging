@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.niklasunrau.pqcmessenger.R
-import org.niklasunrau.pqcmessenger.domain.crypto.Algorithm
+import org.niklasunrau.pqcmessenger.domain.crypto.Algorithms
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricPublicKey
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.crypto.aes.AES
@@ -87,9 +87,9 @@ class MainViewModel @Inject constructor(
             if (_uiState.value.loggedInUserSecretKeys.isNotEmpty()) return@withContext
 
             val encryptedMap = _uiState.value.loggedInUser.encryptedSecretKeys
-            val secretKeys = mutableMapOf<Algorithm.Type, AsymmetricSecretKey>()
+            val secretKeys = mutableMapOf<Algorithms.Type, AsymmetricSecretKey>()
             for ((name, cipher) in encryptedMap) {
-                val type = Algorithm.Type.valueOf(name)
+                val type = Algorithms.Type.valueOf(name)
                 val decrypted = AES.decrypt(cipher, password)
                 val secretKey = json.decodeFromString<AsymmetricSecretKey>(decrypted)
                 secretKeys[type] = secretKey
@@ -134,7 +134,7 @@ class MainViewModel @Inject constructor(
     }
 
 
-    fun onCurrentAlgChange(alg: Algorithm.Type) {
+    fun onCurrentAlgChange(alg: Algorithms.Type) {
         _uiState.update { it.copy(currentAlg = alg) }
     }
 
@@ -201,10 +201,12 @@ class MainViewModel @Inject constructor(
         val encryptedMessage = AES.encrypt(text, symmetricKey)
 
         val encryptedKeys = mutableMapOf<String, String>()
-        val algorithmType = state.currentAlg
-        val algorithm = Algorithm.map[algorithmType]!!
 
-        // Get every users public key and respective algorithm
+        // Get selected algorithm
+        val algorithmType = state.currentAlg
+        val algorithm = Algorithms.map[algorithmType]!!
+
+        // Get every users public key for the selected alg.
         for (userId in state.idToChat[chatId]!!.users) {
             val user = if (userId != state.loggedInUser.id) state.idToUser[userId]!! else state.loggedInUser
             val publicKeyRaw = user.publicKeys[algorithmType.name]!!
@@ -262,9 +264,9 @@ class MainViewModel @Inject constructor(
     }
 
     private fun Message.decodeToLocalMessage(chatId: String): LocalMessage {
-        val algType = Algorithm.Type.valueOf(algorithm)
+        val algType = Algorithms.Type.valueOf(algorithm)
         val secretKey = _uiState.value.loggedInUserSecretKeys[algType]!!
-        val asymmetricAlgorithm = Algorithm.map[algType]!!
+        val asymmetricAlgorithm = Algorithms.map[algType]!!
         val symmetricKey = asymmetricAlgorithm.decrypt(
             encryptedKeys[_uiState.value.loggedInUser.id]!!.toBitArray(), secretKey
         ).toSecretKey()

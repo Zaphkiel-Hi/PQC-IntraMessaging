@@ -49,7 +49,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.niklasunrau.pqcmessenger.R
-import org.niklasunrau.pqcmessenger.domain.crypto.Algorithm
+import org.niklasunrau.pqcmessenger.domain.crypto.Algorithms
 import org.niklasunrau.pqcmessenger.presentation.util.Dimens.SmallPadding
 
 
@@ -127,10 +127,10 @@ fun ReplyTextField(
     value: String,
     onValueChange: (String) -> Unit,
     onSendClicked: () -> Unit,
-    onAlgorithmClicked: (Algorithm.Type) -> Unit
+    onAlgorithmClicked: (Algorithms.Type) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selected by remember { mutableStateOf(Algorithm.Type.MCELIECE) }
+    var selected by remember { mutableStateOf(Algorithms.Type.MCELIECE) }
 
     Row(
         modifier = Modifier
@@ -169,7 +169,7 @@ fun ReplyTextField(
                     )
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    Algorithm.map.forEach { (type, alg) ->
+                    Algorithms.map.forEach { (type, alg) ->
                         DropdownMenuItem(
                             text = { Text(alg.name) },
                             leadingIcon = { if (type == selected) Icon(Icons.Filled.Check, null) },

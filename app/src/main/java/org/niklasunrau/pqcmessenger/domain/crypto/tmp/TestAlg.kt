@@ -15,7 +15,7 @@ data class SK(val a: Int) : AsymmetricSecretKey()
 data class PK(val a: Int) : AsymmetricPublicKey()
 object TestAlg : AsymmetricAlgorithm<SK, PK>() {
 
-    override val name = "Test"
+    override val name = "Neues Verfahren"
     override suspend fun generateKeyPair(): Pair<SK, PK> {
         return SK(1) to PK(2)
     }

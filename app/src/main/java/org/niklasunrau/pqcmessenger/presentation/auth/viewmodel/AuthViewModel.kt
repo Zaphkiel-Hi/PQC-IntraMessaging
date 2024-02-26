@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import org.niklasunrau.pqcmessenger.R
-import org.niklasunrau.pqcmessenger.domain.crypto.Algorithm
+import org.niklasunrau.pqcmessenger.domain.crypto.Algorithms
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricPublicKey
 import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.crypto.aes.AES
@@ -233,7 +233,7 @@ class AuthViewModel @Inject constructor(
                         val mapEncryptedSKs = mutableMapOf<String, String>()
                         val mapPKs = mutableMapOf<String, String>()
 
-                        for ((type, alg) in Algorithm.map) {
+                        for ((type, alg) in Algorithms.map) {
 
                             val (secretKey, publicKey) = viewModelScope.async {
                                 alg.generateKeyPair()
