@@ -233,17 +233,20 @@ class AuthViewModel @Inject constructor(
                         val mapEncryptedSKs = mutableMapOf<String, String>()
                         val mapPKs = mutableMapOf<String, String>()
 
+                        // Encrypt and store each implemented algorithm
                         for ((type, alg) in Algorithms.map) {
-
                             val (secretKey, publicKey) = viewModelScope.async {
                                 alg.generateKeyPair()
                             }.await()
 
+                            // Convert to string JSON-objects
                             val stringSK = json.encodeToString<AsymmetricSecretKey>(secretKey)
                             val stringPK = json.encodeToString<AsymmetricPublicKey>(publicKey)
 
+                            // Encrypt with AES by streching password (PBKDF2)
                             val encryptedSK = AES.encrypt(stringSK, password)
 
+                            // Store each key pair
                             mapEncryptedSKs[type.name] = encryptedSK
                             mapPKs[type.name] = stringPK
                         }

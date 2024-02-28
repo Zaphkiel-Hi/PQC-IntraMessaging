@@ -86,12 +86,21 @@ class MainViewModel @Inject constructor(
             if (password.isNullOrEmpty()) return@withContext
             if (_uiState.value.loggedInUserSecretKeys.isNotEmpty()) return@withContext
 
+            // Get encrypted secret keys
             val encryptedMap = _uiState.value.loggedInUser.encryptedSecretKeys
             val secretKeys = mutableMapOf<Algorithms.Type, AsymmetricSecretKey>()
+
+            // Decrypt each secret key
             for ((name, cipher) in encryptedMap) {
-                val type = Algorithms.Type.valueOf(name)
+
+                // Decrypt with AES by streching password (PBKDF2)
                 val decrypted = AES.decrypt(cipher, password)
+
+                // Undo JSON encoding
                 val secretKey = json.decodeFromString<AsymmetricSecretKey>(decrypted)
+
+                // Get enum value by name and store decrypted secret key
+                val type = Algorithms.Type.valueOf(name)
                 secretKeys[type] = secretKey
             }
             _uiState.update { it.copy(loggedInUserSecretKeys = secretKeys, isLoading = false) }
@@ -214,7 +223,6 @@ class MainViewModel @Inject constructor(
 
             // Encrypt aes key with asymmetric algorithm
             val encryptedSymmetricKey = algorithm.encrypt(symmetricKeyArray, publicKey).joinToString("")
-
             encryptedKeys[userId] = encryptedSymmetricKey
         }
         val currentTime = System.currentTimeMillis()
@@ -265,12 +273,17 @@ class MainViewModel @Inject constructor(
 
     private fun Message.decodeToLocalMessage(chatId: String): LocalMessage {
         val algType = Algorithms.Type.valueOf(algorithm)
-        val secretKey = _uiState.value.loggedInUserSecretKeys[algType]!!
         val asymmetricAlgorithm = Algorithms.map[algType]!!
+
+        // Get secret key and decrypt AES key
+        val secretKey = _uiState.value.loggedInUserSecretKeys[algType]!!
         val symmetricKey = asymmetricAlgorithm.decrypt(
             encryptedKeys[_uiState.value.loggedInUser.id]!!.toBitArray(), secretKey
         ).toSecretKey()
+
+        // Use AES key to decrypt message
         val decodedText = AES.decrypt(encryptedText, symmetricKey)
+
         return LocalMessage(
             id,
             chatId,
