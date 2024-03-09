@@ -29,7 +29,6 @@ fun ContactScreen(
         Column(
             modifier = Modifier.padding(innerPadding),
         ) {
-
         }
     }
 }

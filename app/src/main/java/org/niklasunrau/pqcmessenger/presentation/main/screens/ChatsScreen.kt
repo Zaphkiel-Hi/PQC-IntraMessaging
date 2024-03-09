@@ -17,8 +17,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Message
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,7 +64,6 @@ fun ChatsScreen(
     var showAddDialog by remember {
         mutableStateOf(false)
     }
-
     CustomNavigationDrawer(
         title = stringResource(id = R.string.app_name),
         navigationItems = viewModel.navigationItemsList,
@@ -206,7 +205,7 @@ fun ChatsScreen(
                             TODO("groups chats")
                         }
                     }
-                    Divider()
+                    HorizontalDivider()
                 }
             }
         }

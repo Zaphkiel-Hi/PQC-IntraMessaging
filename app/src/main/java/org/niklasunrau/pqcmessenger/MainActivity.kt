@@ -15,8 +15,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
@@ -44,7 +42,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
+//        fun logBackStack(navController: NavController) {
+//            //Print navController Backstack
+//            val backStackList = navController.currentBackStack.value
+//            val backStackString = backStackList.map {
+//
+//                //it.destination.label
+//                //it.destination.displayName.split('/').last()
+//                it.destination.route
+//
+//            }
+//            Log.d("Backstack", backStackString.toString())
+//        }
         installSplashScreen()
         setContent {
             MessengerTheme {
@@ -52,19 +61,20 @@ class MainActivity : ComponentActivity() {
                 val appViewModel = hiltViewModel<AppViewModel>()
                 appViewModel.logoutPotentialUser()
 
-                fun NavOptionsBuilder.popUpToTop(navController: NavController) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        inclusive = true
-                    }
-                }
-
                 fun navigateTo(
-                    route: Route, withPopUp: Boolean = false, argumentName: String? = null, argumentValue: String = ""
+                    route: Route,
+                    withPopUp: Boolean = false,
+                    argumentName: String? = null,
+                    argumentValue: String = ""
                 ) {
-                    val argument = if (argumentName != null) { "?$argumentName=$argumentValue" } else ""
+                    val argument = if (argumentName != null) {
+                        "?$argumentName=$argumentValue"
+                    } else ""
                     navController.navigate(route.name + argument) {
-                        if (withPopUp) popUpToTop(navController)
+                        if (withPopUp) popUpTo(0)
                     }
+
+//                    logBackStack(navController)
                 }
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface
@@ -89,9 +99,12 @@ class MainActivity : ComponentActivity() {
                             }
                             composable(Route.LogIn.name) {
                                 LogInScreen(
-                                    onNavigateToStart = { navigateTo(Route.Start) },
+                                    onNavigateToStart = { navController.navigateUp() },
 //                                    onNavigateToResetPassword = { navigateTo(Route.ResetPassword) },
-                                    onNavigateToSignUp = { navigateTo(Route.SignUp) },
+                                    onNavigateToSignUp = {
+                                        navController.navigateUp()
+                                        navigateTo(Route.SignUp)
+                                    },
                                     onNavigateToMain = { password ->
                                         navigateTo(Route.Main, true, "password", password)
                                         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
@@ -103,8 +116,11 @@ class MainActivity : ComponentActivity() {
                             }
                             composable(Route.SignUp.name) {
                                 SignUpScreen(
-                                    onNavigateToStart = { navigateTo(Route.Start) },
-                                    onNavigateToLogIn = { navigateTo(Route.LogIn) },
+                                    onNavigateToStart = { navController.navigateUp() },
+                                    onNavigateToLogIn = {
+                                        navController.navigateUp()
+                                        navigateTo(Route.LogIn)
+                                    },
 //                                    onNavigateToMain = { password ->
 //                                        navigateTo(Route.Main, true, "password", password)
 //                                        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
