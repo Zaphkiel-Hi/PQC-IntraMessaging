@@ -37,4 +37,5 @@
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
     <string name="no_app_available_to_send_email">No app available to send email!</string>
+    <string name="home">Home</string>
 </resources>

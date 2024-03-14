@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,35 +21,31 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import coil.compose.AsyncImage
-import org.niklasunrau.pqcmessenger.R
 import org.niklasunrau.pqcmessenger.data.test.AuthRepositoryTest
 import org.niklasunrau.pqcmessenger.data.test.ChatRepositoryTest
 import org.niklasunrau.pqcmessenger.data.test.DBRepositoryTest
 import org.niklasunrau.pqcmessenger.data.test.UserRepositoryTest
-import org.niklasunrau.pqcmessenger.domain.util.Route
-import org.niklasunrau.pqcmessenger.presentation.composables.CustomNavigationDrawer
+import org.niklasunrau.pqcmessenger.presentation.composables.CustomDrawerScaffold
 import org.niklasunrau.pqcmessenger.presentation.main.viewmodel.MainViewModel
 import org.niklasunrau.pqcmessenger.presentation.util.Dimens.MediumPadding
 import org.niklasunrau.pqcmessenger.presentation.util.Dimens.SmallPadding
+import org.niklasunrau.pqcmessenger.presentation.util.Either
 import org.niklasunrau.pqcmessenger.theme.MessengerTheme
 
 @Composable
 fun ProfileScreen(
-    onNavigateToRoute: (Route) -> Unit,
+    drawerState: DrawerState,
+    title: String,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    CustomNavigationDrawer(
-        title = stringResource(id = R.string.profile),
-        navigationItems = viewModel.navigationItemsList,
-        currentRoute = uiState.currentRoute,
-        updateRoute = viewModel::onCurrentRouteChange,
-        onNavigateToRoute = onNavigateToRoute
+    CustomDrawerScaffold(
+        drawerState = drawerState,
+        title = Either.Left(title),
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -94,8 +92,9 @@ fun PreviewProfile() {
             modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface
         ) {
             ProfileScreen(
-                {},
-                MainViewModel(
+                drawerState = DrawerState(initialValue = DrawerValue.Closed),
+                title = "Profile",
+                viewModel = MainViewModel(
                     AuthRepositoryTest(),
                     UserRepositoryTest(),
                     ChatRepositoryTest(),

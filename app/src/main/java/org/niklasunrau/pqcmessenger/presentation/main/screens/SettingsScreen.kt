@@ -12,11 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,29 +36,26 @@ import org.niklasunrau.pqcmessenger.data.test.AuthRepositoryTest
 import org.niklasunrau.pqcmessenger.data.test.ChatRepositoryTest
 import org.niklasunrau.pqcmessenger.data.test.DBRepositoryTest
 import org.niklasunrau.pqcmessenger.data.test.UserRepositoryTest
-import org.niklasunrau.pqcmessenger.domain.util.Route
-import org.niklasunrau.pqcmessenger.presentation.composables.CustomNavigationDrawer
+import org.niklasunrau.pqcmessenger.presentation.composables.CustomDrawerScaffold
 import org.niklasunrau.pqcmessenger.presentation.main.viewmodel.MainViewModel
+import org.niklasunrau.pqcmessenger.presentation.util.Either
 import org.niklasunrau.pqcmessenger.theme.MessengerTheme
 
 
 @Composable
 fun SettingsScreen(
-    onNavigateToRoute: (Route) -> Unit,
+    drawerState: DrawerState,
+    title: String,
     viewModel: MainViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
     var showDeleteDialog by remember {
         mutableStateOf(false)
     }
-    CustomNavigationDrawer(
-        title = stringResource(id = R.string.settings),
-        navigationItems = viewModel.navigationItemsList,
-        currentRoute = uiState.currentRoute,
-        updateRoute = viewModel::onCurrentRouteChange,
-        onNavigateToRoute = onNavigateToRoute
+    CustomDrawerScaffold(
+        drawerState = drawerState,
+        title = Either.Left(title),
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -132,8 +130,9 @@ fun PreviewSettings() {
             modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface
         ) {
             SettingsScreen(
-                {},
-                MainViewModel(
+                drawerState = DrawerState(initialValue = DrawerValue.Closed),
+                title = "Settings",
+                viewModel = MainViewModel(
                     AuthRepositoryTest(),
                     UserRepositoryTest(),
                     ChatRepositoryTest(),

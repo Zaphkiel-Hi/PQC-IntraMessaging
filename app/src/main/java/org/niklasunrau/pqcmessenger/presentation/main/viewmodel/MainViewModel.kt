@@ -1,10 +1,5 @@
 package org.niklasunrau.pqcmessenger.presentation.main.viewmodel
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContactPage
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -38,8 +33,6 @@ import org.niklasunrau.pqcmessenger.domain.repository.DBRepository
 import org.niklasunrau.pqcmessenger.domain.repository.UserRepository
 import org.niklasunrau.pqcmessenger.domain.util.ChatType
 import org.niklasunrau.pqcmessenger.domain.util.Json.json
-import org.niklasunrau.pqcmessenger.domain.util.Route
-import org.niklasunrau.pqcmessenger.presentation.util.NavigationItem
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
 import javax.inject.Inject
 
@@ -123,23 +116,8 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    val navigationItemsList = listOf(
-        NavigationItem(
-            title = "Home", icon = Icons.Filled.Home, route = Route.Chats
-        ),
-        NavigationItem(
-            title = "Profile", icon = Icons.Filled.Person, route = Route.Profile
-        ),
-        NavigationItem(
-            title = "Settings", icon = Icons.Filled.Settings, route = Route.Settings
-        ),
-        NavigationItem(
-            title = "Contact", icon = Icons.Filled.ContactPage, route = Route.Contact
-        ),
-    )
-
-    fun onCurrentRouteChange(newRoute: Route) {
-        _uiState.update { it.copy(currentRoute = newRoute) }
+    fun signOut(){
+        authRepository.signOut()
     }
 
 
@@ -159,10 +137,6 @@ class MainViewModel @Inject constructor(
             )
         }
 
-    }
-
-    fun singOut() {
-        authRepository.signOut()
     }
 
     fun startNewSingleChat(newChatUsername: String): Flow<Boolean> {
@@ -217,12 +191,14 @@ class MainViewModel @Inject constructor(
 
         // Get every users public key for the selected alg.
         for (userId in state.idToChat[chatId]!!.users) {
-            val user = if (userId != state.loggedInUser.id) state.idToUser[userId]!! else state.loggedInUser
+            val user =
+                if (userId != state.loggedInUser.id) state.idToUser[userId]!! else state.loggedInUser
             val publicKeyRaw = user.publicKeys[algorithmType.name]!!
             val publicKey = json.decodeFromString<AsymmetricPublicKey>(publicKeyRaw)
 
             // Encrypt aes key with asymmetric algorithm
-            val encryptedSymmetricKey = algorithm.encrypt(symmetricKeyArray, publicKey).joinToString("")
+            val encryptedSymmetricKey =
+                algorithm.encrypt(symmetricKeyArray, publicKey).joinToString("")
             encryptedKeys[userId] = encryptedSymmetricKey
         }
         val currentTime = System.currentTimeMillis()
@@ -235,7 +211,11 @@ class MainViewModel @Inject constructor(
         )
         viewModelScope.launch {
             val id = chatRepository.sendMessage(chatId, message)
-            dbRepository.saveMessage(LocalMessage(id, chatId, state.loggedInUser.id, text, currentTime))
+            dbRepository.saveMessage(
+                LocalMessage(
+                    id, chatId, state.loggedInUser.id, text, currentTime
+                )
+            )
         }
         _uiState.update { it.copy(currentText = "") }
     }
@@ -260,7 +240,8 @@ class MainViewModel @Inject constructor(
                             }
                         }
                     }
-                    val allMessages = (_uiState.value.currentChatMessages + newMessages).sortedBy { it.timestamp }
+                    val allMessages =
+                        (_uiState.value.currentChatMessages + newMessages).sortedBy { it.timestamp }
                     _uiState.update { it.copy(currentChatMessages = allMessages) }
 
                 }
@@ -285,11 +266,7 @@ class MainViewModel @Inject constructor(
         val decodedText = AES.decrypt(encryptedText, symmetricKey)
 
         return LocalMessage(
-            id,
-            chatId,
-            fromId,
-            decodedText,
-            timestamp
+            id, chatId, fromId, decodedText, timestamp
         )
     }
 

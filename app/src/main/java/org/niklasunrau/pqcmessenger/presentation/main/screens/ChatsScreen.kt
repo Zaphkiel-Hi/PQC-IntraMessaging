@@ -14,9 +14,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Message
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -44,16 +45,17 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.niklasunrau.pqcmessenger.R
 import org.niklasunrau.pqcmessenger.domain.util.ChatType
-import org.niklasunrau.pqcmessenger.domain.util.Route
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomCircularProgress
+import org.niklasunrau.pqcmessenger.presentation.composables.CustomDrawerScaffold
 import org.niklasunrau.pqcmessenger.presentation.composables.CustomFilledButton
-import org.niklasunrau.pqcmessenger.presentation.composables.CustomNavigationDrawer
 import org.niklasunrau.pqcmessenger.presentation.main.viewmodel.MainViewModel
 import org.niklasunrau.pqcmessenger.presentation.util.Dimens.SmallPadding
+import org.niklasunrau.pqcmessenger.presentation.util.Either
 
 @Composable
 fun ChatsScreen(
-    onNavigateToRoute: (Route) -> Unit,
+    drawerState: DrawerState,
+    title: String,
     onNavigateToAuth: () -> Unit,
     onNavigateToSingleChat: (String) -> Unit,
     viewModel: MainViewModel = hiltViewModel()
@@ -64,19 +66,16 @@ fun ChatsScreen(
     var showAddDialog by remember {
         mutableStateOf(false)
     }
-    CustomNavigationDrawer(
-        title = stringResource(id = R.string.app_name),
-        navigationItems = viewModel.navigationItemsList,
-        currentRoute = uiState.currentRoute,
-        updateRoute = viewModel::onCurrentRouteChange,
-        onNavigateToRoute = onNavigateToRoute,
+    CustomDrawerScaffold(
+        drawerState = drawerState,
+        title = Either.Left(title),
         actions = {
             IconButton(onClick = {
-                viewModel.singOut()
+                viewModel.signOut()
                 onNavigateToAuth()
             }) {
                 Icon(
-                    imageVector = Icons.Filled.Logout,
+                    imageVector = Icons.AutoMirrored.Filled.Logout,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     contentDescription = null
                 )
@@ -92,7 +91,7 @@ fun ChatsScreen(
                 modifier = Modifier.padding(bottom = SmallPadding, end = SmallPadding)
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Message,
+                    imageVector = Icons.AutoMirrored.Filled.Message,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimary
                 )

@@ -6,13 +6,13 @@ import org.niklasunrau.pqcmessenger.domain.crypto.AsymmetricSecretKey
 import org.niklasunrau.pqcmessenger.domain.model.Chat
 import org.niklasunrau.pqcmessenger.domain.model.User
 import org.niklasunrau.pqcmessenger.domain.model.local.LocalMessage
-import org.niklasunrau.pqcmessenger.domain.util.Route
+import org.niklasunrau.pqcmessenger.presentation.util.Screen
 import org.niklasunrau.pqcmessenger.presentation.util.UiText
 
 data class MainUIState(
     val isLoading: Boolean = false,
 
-    val currentRoute: Route = Route.Chats,
+    val currentScreen: Screen = Screen.Main.Chats,
     val loggedInUser: User = User(),
     val loggedInUserSecretKeys: Map<Algorithms.Type, AsymmetricSecretKey> = mapOf(),
 

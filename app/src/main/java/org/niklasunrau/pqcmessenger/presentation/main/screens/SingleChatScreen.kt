@@ -16,7 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +43,7 @@ import org.niklasunrau.pqcmessenger.presentation.composables.ReplyTextField
 import org.niklasunrau.pqcmessenger.presentation.main.viewmodel.MainViewModel
 import org.niklasunrau.pqcmessenger.presentation.util.Dimens.LargePadding
 import org.niklasunrau.pqcmessenger.presentation.util.Dimens.SmallPadding
+import org.niklasunrau.pqcmessenger.presentation.util.Either
 
 @Composable
 fun SingleChatScreen(
@@ -50,8 +51,6 @@ fun SingleChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val chatListState = rememberLazyListState()
-
-
 
 
     LaunchedEffect(key1 = Unit) {
@@ -65,37 +64,39 @@ fun SingleChatScreen(
         onNavigateToChats()
     }
 
-    CustomScaffold(title = {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AsyncImage(
-                model = uiState.idToChat[chatId]!!.icon,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(SmallPadding)
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-            )
-            Text(
-                text = uiState.idToChat[chatId]!!.name,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
-    }, navigationIcon = {
-        IconButton(onClick = {
-            viewModel.closeChat()
-            onNavigateToChats()
-        }) {
-            Icon(
-                Icons.Filled.ArrowBack, null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
-    }, actions = { }, floatingActionButton = { }) { innerPadding ->
+    CustomScaffold(
+        title = Either.Right {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = uiState.idToChat[chatId]!!.icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(SmallPadding)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                )
+                Text(
+                    text = uiState.idToChat[chatId]!!.name,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+
+                )
+            }
+        }, navigationIcon = {
+            IconButton(onClick = {
+                viewModel.closeChat()
+                onNavigateToChats()
+            }) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack, null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }) { innerPadding ->
         Column(
             Modifier
                 .fillMaxSize()
