@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">PQCMessenger</string>
+    <string name="hello">Hello</string>
+    <string name="welcome">Welcome to PQCMessenger</string>
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="email">Email Address</string>
+    <string name="password">Password</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="no_account">Don\'t have an account?</string>
+    <string name="create_account">Create Account</string>
+    <string name="already_account">Do you already have an account?</string>
+    <string name="username">Username</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="version">"Version: "</string>
+    <string name="profile">Profile</string>
+    <string name="settings">Settings</string>
+    <string name="contact">Contact</string>
+
+    <string name="username_in_use">Username already in use</string>
+    <string name="cannot_be_empty">This field cannot be empty</string>
+    <string name="email_in_use">Email already in use</string>
+    <string name="email_not_valid">Email not valid</string>
+    <string name="password_not_identical">Passwords don\'t match</string>
+    <string name="password_not_valid">Passwords has to be at least 6 characters</string>
+    <string name="start_new_chat">Start new chat</string>
+    <string name="start_chat">Start chat</string>
+    <string name="chat_already_exists">Chat already exists</string>
+    <string name="cannot_add_yourself">Cannot add yourself</string>
+    <string name="user_not_found">User not found</string>
+    <string name="invalid_credentials">Username or password invalid</string>
+    <string name="message">Message</string>
+    <string name="sucessfully_registered">Successfully registered. Verify your email and login!</string>
+    <string name="email_not_verified">You need to verify your email!</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="sure_to_delete">Are you sure you want to delete your account?</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="no_app_available_to_send_email">No app available to send email!</string>
+    <string name="home">Home</string>
+</resources>
