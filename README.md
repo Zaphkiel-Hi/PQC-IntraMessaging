@@ -43,4 +43,3 @@ To build and run the app:
    ```bash
    git clone https://github.com/zaphkiel-hi/pqc-messenger.git
    cd pqc-messenger
-
