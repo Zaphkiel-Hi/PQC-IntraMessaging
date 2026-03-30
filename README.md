@@ -41,5 +41,5 @@ To build and run the app:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/zaphkiel-hi/pqc-messenger.git
+   git clone https://github.com/zaphkiel-hi/pqc-messenger.git 
    cd pqc-messenger
