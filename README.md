@@ -13,7 +13,7 @@
 
 - `domain/crypto/`  
   → Core cryptographic components and PQC logic (including McEliece implementation)
-
+ 
 - `gradle/`  
   → Gradle wrapper and build system
  
