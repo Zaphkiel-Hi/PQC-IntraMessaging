@@ -15,7 +15,7 @@
   → Core cryptographic components and PQC logic (including McEliece implementation) 
  
 - `gradle/`  
-  → Gradle wrapper and build system
+  → Gradle wrapper and build system 
  
 ---
  
