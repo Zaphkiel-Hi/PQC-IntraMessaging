@@ -9,7 +9,7 @@
 ## 📌 Project Structure
  
 - `app/src/main/java/org/niklasunrau/pqcmessenger/`   
-  → Main application source code
+  → Main application source code 
 
 - `domain/crypto/`   
   → Core cryptographic components and PQC logic (including McEliece implementation) 
