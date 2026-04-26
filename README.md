@@ -11,7 +11,7 @@
 - `app/src/main/java/org/niklasunrau/pqcmessenger/`   
   → Main application source code  
   
-- `domain/crypto/`    
+- `domain/crypto/`     
   → Core cryptographic components and PQC logic (including McEliece implementation) 
    
 - `gradle/`  
