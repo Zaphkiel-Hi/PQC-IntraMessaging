@@ -3,7 +3,7 @@
 > A proof-of-concept secure messenger app using **Post-Quantum Cryptography (PQC)** — implemented for academic research.  
 > 
 **"Post-Quantum Cryptography: Implementation of McEliece in the Example of a Messenger App"** 
-
+ 
 ---
    
 ## 📌 Project Structure 
