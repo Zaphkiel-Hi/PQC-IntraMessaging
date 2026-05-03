@@ -8,7 +8,7 @@
    
 ## 📌 Project Structure 
  
-- `app/src/main/java/org/niklasunrau/pqcmessenger/`   
+- `app/src/main/java/org/niklasunrau/pqcmessenger/`    
   → Main application source code   
   
 - `domain/crypto/`      
