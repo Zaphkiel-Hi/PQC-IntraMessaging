@@ -7,7 +7,7 @@
 ---  
    
 ## 📌 Project Structure   c
- 
+  
 - `app/src/main/java/org/niklasunrau/pqcmessenger/`        
   → Main application source code        
    
